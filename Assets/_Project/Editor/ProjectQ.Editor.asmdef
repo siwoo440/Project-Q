@@ -1,7 +1,11 @@
 {
     "name": "ProjectQ.Editor",
     "rootNamespace": "ProjectQ.EditorTools",
-    "references": [],
+    "references": [
+        "ProjectQ.Runtime",
+        "Unity.InputSystem",
+        "Unity.ugui"
+    ],
     "includePlatforms": [
         "Editor"
     ],

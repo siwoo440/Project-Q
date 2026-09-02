@@ -1,7 +1,9 @@
 {
     "name": "ProjectQ.Runtime",
     "rootNamespace": "ProjectQ",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

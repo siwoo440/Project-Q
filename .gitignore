@@ -12,6 +12,7 @@
 # Unity generated files
 *.csproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
