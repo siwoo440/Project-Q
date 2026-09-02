@@ -14,6 +14,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
         public event Action CombatStarted; // 전투 시작 알림 이벤트
         public event Action CombatCleared; // 전투 클리어 알림 이벤트
+        public event Action CombatFailed; // 전투 실패 알림 이벤트
         public event Action<CombatState> StateChanged; // 전투 상태 변경 알림 이벤트
 
         public CombatState State => state; // 현재 전투 상태 반환
@@ -81,7 +82,20 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             CombatStarted?.Invoke(); // 전투 시작 이벤트 전달
         }
 
-        public void RestartCombat() // 전투 재시작 테스트 메서드
+        public void FailCombat() // 플레이어 사망 전투 실패 처리 메서드
+        {
+            if (state != CombatState.Combat) // 실제 전투 진행 상태 여부 확인
+            {
+                return; // 진행 중이 아닌 전투 실패 처리 방지
+            }
+
+            ReleaseEnemyProjectiles(); // 화면에 남은 적 탄환 즉시 정리
+            ChangeState(CombatState.Failed); // 전투 실패 상태로 변경
+            CombatFailed?.Invoke(); // 전투 실패 이벤트 전달
+            Debug.Log("[Project Q] Arena combat failed."); // 전투 실패 로그 출력
+        }
+
+        public void RestartCombat() // 전투 재시작 메서드
         {
             ReleaseEnemyProjectiles(); // 기존 적 탄환 정리
             ChangeState(CombatState.Idle); // 전투 상태를 대기로 초기화

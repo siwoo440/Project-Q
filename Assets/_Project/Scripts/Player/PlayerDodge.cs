@@ -28,6 +28,14 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
             movement = movementController; // 플레이어 이동 참조 저장
         }
 
+        public void ResetDodge() // 회피 상태 전체 초기화 메서드
+        {
+            dodgeDirection = Vector2.down; // 기본 회피 방향으로 초기화
+            dodgeTimeRemaining = 0f; // 남은 회피 이동 시간 초기화
+            invincibleTimeRemaining = 0f; // 남은 무적 시간 초기화
+            cooldownRemaining = 0f; // 남은 회피 쿨타임 초기화
+        }
+
         private void Update() // 회피 상태 갱신 메서드
         {
             dodgeTimeRemaining = Mathf.Max(0f, dodgeTimeRemaining - Time.deltaTime); // 남은 회피 시간 감소

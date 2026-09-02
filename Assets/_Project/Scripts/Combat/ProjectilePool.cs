@@ -93,6 +93,25 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             return releasedCount; // 실제 반환된 투사체 수 반환
         }
 
+        public int ReleaseAll() // 모든 활성 투사체 일괄 반환 메서드
+        {
+            List<ProjectileBase> snapshot = new List<ProjectileBase>(activeProjectiles); // 전체 활성 투사체 안전 순회 복사본 생성
+            int releasedCount = 0; // 실제 전체 반환 수 초기화
+            foreach (ProjectileBase projectile in snapshot) // 모든 활성 투사체 순회
+            {
+                if (projectile == null) // 파괴된 투사체 참조 여부 확인
+                {
+                    activeProjectiles.Remove(projectile); // 파괴된 참조를 활성 목록에서 제거
+                    continue; // 다음 투사체 확인
+                }
+
+                projectile.ForceDespawn(); // 현재 투사체를 즉시 풀로 반환
+                releasedCount++; // 전체 반환 수 증가
+            }
+
+            return releasedCount; // 실제 전체 반환 수 반환
+        }
+
         public void Prewarm<T>(T prefab, int count) where T : ProjectileBase // 투사체 사전 생성 메서드
         {
             if (prefab == null || count <= 0) // 사전 생성 조건 확인

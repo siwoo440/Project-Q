@@ -53,6 +53,35 @@ namespace ProjectQ.Enemies // 적 시스템 네임스페이스
             }
         }
 
+        public void StopAllEnemies() // 현재 생존 적 이동과 공격 일괄 정지 메서드
+        {
+            RemoveMissingEnemies(); // 파괴된 적 참조 먼저 정리
+            foreach (EnemyController enemy in activeEnemies) // 현재 생존 적 목록 순회
+            {
+                if (enemy == null) // 유효 적 참조 여부 확인
+                {
+                    continue; // 파괴된 적 처리 생략
+                }
+
+                EnemyMovement movement = enemy.GetComponent<EnemyMovement>(); // 현재 적 이동 컴포넌트 검색
+                if (movement != null) // 적 이동 컴포넌트 존재 여부 확인
+                {
+                    movement.StopMovement(); // 현재 적 이동 정지
+                }
+
+                EnemyAttackController attack = enemy.GetComponent<EnemyAttackController>(); // 현재 적 공격 컴포넌트 검색
+                if (attack != null) // 적 공격 컴포넌트 존재 여부 확인
+                {
+                    attack.StopAttacking(); // 현재 적 공격 정지
+                }
+            }
+        }
+
+        public void ClearAllEnemies() // 현재 생성된 모든 적 정리 메서드
+        {
+            ClearSpawnedEnemies(); // 스포너 하위 적 오브젝트 전체 제거
+        }
+
         private void Start() // 적 스포너 시작 메서드
         {
             if (spawnOnStart) // 게임 시작 자동 생성 여부 확인

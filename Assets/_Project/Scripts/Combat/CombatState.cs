@@ -4,6 +4,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
     {
         Idle, // 전투 대기 상태
         Combat, // 전투 진행 상태
-        Clear // 전투 클리어 상태
+        Clear, // 전투 클리어 상태
+        Failed // 플레이어 사망 전투 실패 상태
     }
 }
