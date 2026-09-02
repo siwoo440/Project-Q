@@ -14,6 +14,8 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
         public event Action CombatStarted; // 전투 시작 알림 이벤트
         public event Action CombatCleared; // 전투 클리어 알림 이벤트
+        public event Action RewardStarted; // 보상 선택 시작 알림 이벤트
+        public event Action RewardCompleted; // 보상 선택 완료 알림 이벤트
         public event Action CombatFailed; // 전투 실패 알림 이벤트
         public event Action<CombatState> StateChanged; // 전투 상태 변경 알림 이벤트
 
@@ -70,9 +72,9 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 전투 시작 처리 중단
             }
 
-            if (state == CombatState.Combat) // 이미 전투 진행 중인지 확인
+            if (state == CombatState.Combat || state == CombatState.Reward) // 전투 또는 보상 진행 상태 여부 확인
             {
-                return; // 중복 전투 시작 방지
+                return; // 중복 전투 시작과 보상 선택 중 전투 시작 방지
             }
 
             hasSpawnedEnemies = false; // 새 전투 적 생성 상태 초기화
@@ -80,6 +82,28 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             enemySpawner.RespawnAll(); // 아레나 적 전체 생성
             hasSpawnedEnemies = enemySpawner.ActiveEnemyCount > 0; // 생성 직후 실제 적 존재 여부 기록
             CombatStarted?.Invoke(); // 전투 시작 이벤트 전달
+        }
+
+        public void BeginReward() // 전투 종료 보상 선택 상태 시작 메서드
+        {
+            if (state != CombatState.Clear) // 실제 전투 클리어 상태 여부 확인
+            {
+                return; // 클리어 상태가 아닌 보상 시작 방지
+            }
+
+            ChangeState(CombatState.Reward); // 전투 상태를 보상 선택으로 변경
+            RewardStarted?.Invoke(); // 보상 선택 시작 이벤트 전달
+        }
+
+        public void CompleteReward() // 전투 종료 보상 선택 완료 메서드
+        {
+            if (state != CombatState.Reward) // 실제 보상 선택 상태 여부 확인
+            {
+                return; // 보상 상태가 아닌 완료 처리 방지
+            }
+
+            ChangeState(CombatState.Clear); // 보상 선택 완료 후 전투 클리어 상태로 복귀
+            RewardCompleted?.Invoke(); // 보상 선택 완료 이벤트 전달
         }
 
         public void FailCombat() // 플레이어 사망 전투 실패 처리 메서드

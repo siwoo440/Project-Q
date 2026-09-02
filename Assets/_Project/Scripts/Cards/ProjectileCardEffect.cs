@@ -1,5 +1,5 @@
 using ProjectQ.Combat; // 공통 투사체와 풀링 기능 사용
-using ProjectQ.Player; // 플레이어 조준 기능 사용
+using ProjectQ.Player; // 플레이어 조준과 버프 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 
 namespace ProjectQ.Cards // 카드 시스템 네임스페이스
@@ -50,12 +50,16 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             }
 
             PlayerAim aim = context.User.GetComponent<PlayerAim>(); // 플레이어 조준 검색
+            PlayerBuffController buffs = context.User.GetComponent<PlayerBuffController>(); // 플레이어 공격 피해 버프 검색
             Vector2 direction = aim != null ? aim.AimDirection : Vector2.right; // 현재 조준 방향 계산
             if (direction.sqrMagnitude <= 0.0001f) // 조준 방향 유효성 확인
             {
                 direction = Vector2.right; // 기본 방향 사용
             }
 
+            float damageMultiplier = buffs != null ? buffs.AttackDamageMultiplier : 1f; // 현재 플레이어 공격 카드 피해 배율 계산
+            float finalDamage = damage * damageMultiplier; // 공격 버프가 적용된 직접 피해량 계산
+            float finalExplosionDamage = explosionDamage * damageMultiplier; // 공격 버프가 적용된 폭발 피해량 계산
             direction.Normalize(); // 발사 방향 정규화
             Vector3 spawnPosition = context.User.transform.position + (Vector3)(direction * spawnDistance); // 투사체 생성 위치 계산
             ProjectilePool pool = ProjectilePool.GetOrCreate(); // 기존 공통 풀 가져오기
@@ -65,14 +69,14 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
                 return; // 공격 실행 중단
             }
 
-            projectile.ConfigureDefaults(projectileSpeed, damage, lifeTime); // 카드별 투사체 수치 적용
+            projectile.ConfigureDefaults(projectileSpeed, finalDamage, lifeTime); // 버프가 적용된 카드별 투사체 수치 적용
             ProjectileCardModifier modifier = projectile.GetComponent<ProjectileCardModifier>(); // 카드 특수 보정 검색
             if (modifier == null) // 특수 보정 존재 여부 확인
             {
                 modifier = projectile.gameObject.AddComponent<ProjectileCardModifier>(); // 특수 보정 자동 추가
             }
 
-            modifier.Configure(context.User, CombatFaction.Player, pierceCount, explosionRadius, explosionDamage, homingTurnSpeed, homingRange); // 카드 특수 효과 적용
+            modifier.Configure(context.User, CombatFaction.Player, pierceCount, explosionRadius, finalExplosionDamage, homingTurnSpeed, homingRange); // 버프가 적용된 카드 특수 효과 적용
             projectile.Launch(direction, context.User); // 카드 투사체 발사
         }
     }

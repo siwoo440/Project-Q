@@ -10,6 +10,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         [SerializeField] private float maxMana = 100f; // 플레이어 최대 마나
         [SerializeField] private float maxShield = 100f; // 플레이어 최대 실드
         [SerializeField] private float startingShield = 25f; // 플레이어 시작 실드
+        [SerializeField] private float baseManaRegenPerSecond = 5f; // 플레이어 기본 초당 MP 자동 회복량
         private float currentHealth; // 플레이어 현재 체력
         private float currentMana; // 플레이어 현재 마나
         private float currentShield; // 플레이어 현재 실드
@@ -19,6 +20,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         public event Action<float, float> ManaChanged; // 플레이어 마나 변경 이벤트
         public event Action<float, float> ShieldChanged; // 플레이어 실드 변경 이벤트
         public event Action Died; // 플레이어 사망 이벤트
+
         public CombatFaction Faction => CombatFaction.Player; // 플레이어 진영 반환
         public float MaxHealth => maxHealth; // 플레이어 최대 체력 반환
         public float CurrentHealth => currentHealth; // 플레이어 현재 체력 반환
@@ -26,6 +28,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         public float CurrentMana => currentMana; // 플레이어 현재 마나 반환
         public float MaxShield => maxShield; // 플레이어 최대 실드 반환
         public float CurrentShield => currentShield; // 플레이어 현재 실드 반환
+        public float BaseManaRegenPerSecond => baseManaRegenPerSecond; // 플레이어 기본 초당 MP 자동 회복량 반환
         public bool IsDead => isDead; // 플레이어 사망 상태 반환
 
         public void Configure(float health, float mana, float shieldCapacity, float initialShield) // 플레이어 전투 기본값 설정 메서드
@@ -36,9 +39,29 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
             startingShield = Mathf.Clamp(initialShield, 0f, maxShield); // 시작 실드 범위 보정
         }
 
+        public void ConfigureManaRegen(float manaPerSecond) // 플레이어 기본 MP 자동 회복량 설정 메서드
+        {
+            baseManaRegenPerSecond = Mathf.Max(0f, manaPerSecond); // 기본 MP 자동 회복량을 0 이상으로 보정
+        }
+
         private void Awake() // 플레이어 전투 상태 초기화 메서드
         {
             ResetStats(); // 플레이어 전투 상태 최대치 초기화
+        }
+
+        private void Update() // 플레이어 기본 MP 자동 회복 처리 메서드
+        {
+            if (isDead || baseManaRegenPerSecond <= 0f) // 사망 상태 또는 MP 자동 회복 비활성 여부 확인
+            {
+                return; // 기본 MP 자동 회복 처리 생략
+            }
+
+            if (currentMana >= maxMana) // 현재 MP 최대치 도달 여부 확인
+            {
+                return; // 최대 MP 상태 자동 회복 처리 생략
+            }
+
+            RestoreMana(baseManaRegenPerSecond * Time.deltaTime); // 프레임 시간에 비례해 기본 MP 자동 회복 적용
         }
 
         public bool TakeDamage(DamageInfo damageInfo) // 플레이어 공통 피해 적용 메서드
@@ -75,7 +98,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
 
             isDead = true; // 플레이어 사망 상태 설정
             Died?.Invoke(); // 플레이어 사망 이벤트 호출
-            Debug.Log("[Project Q] Player reached 0 HP during Day 5 combat test."); // 플레이어 사망 테스트 로그 출력
+            Debug.Log("[Project Q] Player reached 0 HP during combat."); // 플레이어 사망 로그 출력
             return true; // 마지막 피해 적용 성공 반환
         }
 

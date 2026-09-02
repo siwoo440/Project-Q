@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53cd2e7890d14a1aaafc5e2c65ed046c, type: 3}
+  m_Name: Reward_Heal25
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
+  id: reward_heal_25
+  displayName: Camp Recovery
+  description: Recover HP immediately.
+  type: 2
+  cardData: {fileID: 0}
+  goldAmount: 0
+  healAmount: 25
+  relicPayload: {fileID: 0}
+  rarity: 0
+  baseWeight: 1.1
+  allowDuplicateCard: 1
+  enabledForGeneration: 1

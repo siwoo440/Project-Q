@@ -18,6 +18,7 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
         public event Action DeckInitialized; // 덱 최초 구성 완료 이벤트
         public event Action<int, RuntimeCard> CardDrawn; // 카드 뽑기 이벤트
         public event Action<RuntimeCard> CardDiscarded; // 카드 버림 이벤트
+        public event Action<RuntimeCard> CardAdded; // 전투 보상 카드 획득 이벤트
         public event Action<int, RuntimeCard> ActiveSlotChanged; // 활성 슬롯 변경 이벤트
         public event Action DeckShuffled; // 덱 재셔플 이벤트
         public event Action StateChanged; // 덱 상태 변경 이벤트
@@ -85,6 +86,30 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             }
 
             return activeSlots[slotIndex]; // 현재 슬롯 카드 반환
+        }
+
+        public bool AddCard(CardData cardData) // 전투 보상 카드 현재 회차 덱 추가 메서드
+        {
+            if (cardData == null) // 새 카드 원본 데이터 존재 여부 확인
+            {
+                return false; // 카드 추가 실패 반환
+            }
+
+            RuntimeCard runtimeCard = new RuntimeCard(cardData); // 보상 카드 원본에서 새 런타임 카드 생성
+            discardPile.Add(runtimeCard); // 새 카드를 Discard Pile에 추가해 다음 셔플부터 등장하도록 처리
+            CardAdded?.Invoke(runtimeCard); // 회차 덱 카드 획득 이벤트 전달
+            StateChanged?.Invoke(); // 덱 전체 상태 변경 이벤트 전달
+            return true; // 카드 추가 성공 반환
+        }
+
+        public bool ContainsCardId(string cardId) // 현재 회차 덱 카드 ID 보유 여부 확인 메서드
+        {
+            if (string.IsNullOrEmpty(cardId)) // 검사할 카드 ID 유효성 확인
+            {
+                return false; // 빈 카드 ID 보유 아님 반환
+            }
+
+            return ContainsCardId(drawPile, cardId) || ContainsCardId(discardPile, cardId) || ContainsCardId(activeSlots, cardId); // 모든 덱 영역에서 동일 카드 ID 보유 여부 반환
         }
 
         public bool TryUseActiveSlot(int slotIndex) // 기존 테스트 호환 카드 사용 메서드
@@ -190,6 +215,19 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
                     card.TickCooldown(Time.deltaTime); // 현재 카드 쿨타임 감소
                 }
             }
+        }
+
+        private static bool ContainsCardId(List<RuntimeCard> cards, string cardId) // 단일 덱 영역 카드 ID 검색 메서드
+        {
+            foreach (RuntimeCard card in cards) // 지정 덱 영역 런타임 카드 전체 순회
+            {
+                if (card != null && card.Data != null && card.Data.Id == cardId) // 현재 런타임 카드 ID 일치 여부 확인
+                {
+                    return true; // 동일 카드 ID 보유 반환
+                }
+            }
+
+            return false; // 지정 덱 영역에 동일 카드 ID 없음 반환
         }
 
         private int CountCards() // 현재 전체 카드 수 계산 메서드

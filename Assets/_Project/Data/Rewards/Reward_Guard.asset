@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53cd2e7890d14a1aaafc5e2c65ed046c, type: 3}
+  m_Name: Reward_Guard
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
+  id: reward_guard
+  displayName: Guard
+  description: Add Guard to this run deck.
+  type: 0
+  cardData: {fileID: 11400000, guid: 18ea1a9b04374a24d9512c0cc2f54a89, type: 2}
+  goldAmount: 0
+  healAmount: 0
+  relicPayload: {fileID: 0}
+  rarity: 0
+  baseWeight: 1
+  allowDuplicateCard: 1
+  enabledForGeneration: 1

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ff4e3c7e4e4bd380d818458f2a7ed2, type: 3}
+  m_Name: Recovery
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
+  id: card_recovery
+  displayName: Recovery
+  description: Recover 20 HP
+  rarity: 1
+  type: 2
+  mpCost: 15
+  cooldown: 2
+  upgradeValue: 5
+  effect: {fileID: 11400000, guid: 326f5da022d88a64ea054f6112d6ee40, type: 2}

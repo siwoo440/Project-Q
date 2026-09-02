@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ff4e3c7e4e4bd380d818458f2a7ed2, type: 3}
+  m_Name: Haste
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
+  id: card_haste
+  displayName: Haste
+  description: Move speed +25% for 5 sec
+  rarity: 0
+  type: 2
+  mpCost: 10
+  cooldown: 2
+  upgradeValue: 0.1
+  effect: {fileID: 11400000, guid: dc2da1c8d7b081e4581330de8479cdf6, type: 2}

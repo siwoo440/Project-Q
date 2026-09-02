@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ff4e3c7e4e4bd380d818458f2a7ed2, type: 3}
+  m_Name: Guard
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
+  id: card_guard
+  displayName: Guard
+  description: Shield +25
+  rarity: 0
+  type: 1
+  mpCost: 10
+  cooldown: 1.5
+  upgradeValue: 5
+  effect: {fileID: 11400000, guid: dc8fc7fcd8cae774794205bb006fff01, type: 2}
