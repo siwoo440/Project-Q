@@ -20,6 +20,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         public event Action<float, float> ManaChanged; // 플레이어 마나 변경 이벤트
         public event Action<float, float> ShieldChanged; // 플레이어 실드 변경 이벤트
         public event Action Died; // 플레이어 사망 이벤트
+        public event Action<DamageInfo> Damaged; // 실제 적 피해 적용 성공 이벤트
 
         public CombatFaction Faction => CombatFaction.Player; // 플레이어 진영 반환
         public float MaxHealth => maxHealth; // 플레이어 최대 체력 반환
@@ -136,6 +137,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
                 HealthChanged?.Invoke(currentHealth, maxHealth); // 플레이어 체력 변경 알림
             }
 
+            Damaged?.Invoke(damageInfo); // 조건부 유물 시스템에 실제 피격 이벤트 전달
             if (currentHealth > 0f) // 플레이어 생존 여부 확인
             {
                 return true; // 피해 적용 성공 반환

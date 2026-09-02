@@ -95,7 +95,6 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
 
             selectionLocked = true; // 현재 보상 화면 추가 선택 잠금
             rewardActive = false; // 현재 보상 선택 진행 상태 종료
-            RewardClaimed?.Invoke(reward); // 보상 획득 완료 이벤트 전달
             if (hud != null) // 보상 HUD 참조 존재 여부 확인
             {
                 hud.Hide(); // 보상 선택 완료 후 HUD 숨김
@@ -107,6 +106,7 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
                 arena.CompleteReward(); // 전투 아레나 Reward 상태 종료
             }
 
+            RewardClaimed?.Invoke(reward); // 보상 처리 종료 후 상점 등 후속 성장 흐름에 이벤트 전달
             return true; // 보상 선택 성공 반환
         }
 

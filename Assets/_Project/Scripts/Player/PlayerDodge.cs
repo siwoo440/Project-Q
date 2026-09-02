@@ -1,3 +1,4 @@
+using System; // C# 이벤트 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 
 namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
@@ -14,6 +15,8 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         private float dodgeTimeRemaining; // 남은 회피 이동 시간
         private float invincibleTimeRemaining; // 남은 무적 시간
         private float cooldownRemaining; // 남은 회피 재사용 시간
+
+        public event Action Dodged; // 실제 회피 시작 성공 이벤트
 
         public bool IsDodging => dodgeTimeRemaining > 0f; // 현재 회피 이동 상태 반환
         public bool IsInvincible => invincibleTimeRemaining > 0f; // 현재 회피 무적 상태 반환
@@ -67,6 +70,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
             dodgeTimeRemaining = dodgeDuration; // 회피 이동 시간 시작
             invincibleTimeRemaining = invincibleDuration; // 회피 무적 시간 시작
             cooldownRemaining = dodgeCooldown; // 회피 쿨타임 시작
+            Dodged?.Invoke(); // 조건부 유물 시스템에 회피 성공 이벤트 전달
         }
     }
 }

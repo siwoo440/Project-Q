@@ -10,7 +10,8 @@ namespace ProjectQ.Enemies // 적 시스템 네임스페이스
         [SerializeField] private float currentHealth; // 적 현재 체력
         private bool isDead; // 적 사망 상태
 
-        public event Action<EnemyController> Died; // 적 사망 알림 이벤트
+        public static event Action<EnemyController> AnyEnemyDied; // 현재 회차 전체 적 사망 공통 이벤트
+        public event Action<EnemyController> Died; // 개별 적 사망 알림 이벤트
 
         public CombatFaction Faction => CombatFaction.Enemy; // 적 진영 반환 속성
         public EnemyData Data => data; // 적 데이터 반환 속성
@@ -92,6 +93,7 @@ namespace ProjectQ.Enemies // 적 시스템 네임스페이스
                 targetCollider.enabled = false; // 사망 적 충돌 판정 비활성화
             }
 
+            AnyEnemyDied?.Invoke(this); // 조건부 유물 시스템에 전역 적 처치 이벤트 전달
             Died?.Invoke(this); // 적 사망 이벤트 전달
             Destroy(gameObject); // 사망 적 오브젝트 제거
         }

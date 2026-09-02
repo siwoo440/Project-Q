@@ -8,7 +8,7 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
     public sealed class DeckHUDController : MonoBehaviour // 2칸 카드 전투 HUD 관리 클래스
     {
         [SerializeField] private RunDeck deck; // 회차 덱 참조
-        [SerializeField] private CardUseController cardUseController; // Q E 선택 참조
+        [SerializeField] private CardUseController cardUseController; // 카드 직접 사용 컨트롤러 호환 참조
         [SerializeField] private PlayerStats playerStats; // 플레이어 MP 참조
         [SerializeField] private Text drawText; // Draw 수 텍스트
         [SerializeField] private Text discardText; // Discard 수 텍스트
@@ -62,43 +62,40 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
                 totalText.text = $"덱 {deck.TotalCardCount}"; // 전체 카드 수 표시
             }
 
-            int selectedIndex = cardUseController != null ? cardUseController.SelectedSlotIndex : 0; // 현재 선택 슬롯 계산
-            if (selectionText != null) // 선택 안내 텍스트 확인
+            if (selectionText != null) // 카드 직접 사용 안내 텍스트 확인
             {
-                string selectedKey = selectedIndex == 0 ? "Q" : "E"; // 선택 키 계산
-                selectionText.text = $"선택 : {selectedKey}   |   Q / E 선택   |   좌클릭 사용"; // 조작 안내 표시
+                selectionText.text = "좌클릭 : 왼쪽 카드   |   우클릭 : 오른쪽 카드"; // Q E 선택 없는 마우스 직접 사용 안내 표시
             }
 
             for (int index = 0; index < slotTexts.Length; index++) // 두 카드 슬롯 순회
             {
                 RuntimeCard card = index < deck.ActiveSlots.Count ? deck.ActiveSlots[index] : null; // 현재 슬롯 카드 가져오기
-                ApplySlot(index, card, selectedIndex == index); // 슬롯 정보 표시
+                ApplySlot(index, card); // 슬롯 정보 표시
             }
         }
 
-        private void ApplySlot(int index, RuntimeCard card, bool selected) // 단일 카드 슬롯 표시
+        private void ApplySlot(int index, RuntimeCard card) // 단일 카드 슬롯 표시
         {
             Text slotText = slotTexts[index]; // 현재 슬롯 텍스트
             Image background = slotBackgrounds[index]; // 현재 슬롯 배경
-            string key = index == 0 ? "Q" : "E"; // 슬롯 키 계산
+            string inputName = index == 0 ? "좌클릭" : "우클릭"; // 슬롯 직접 사용 마우스 입력 이름 계산
 
             if (card == null || card.Data == null) // 카드 존재 여부 확인
             {
-                slotText.text = $"{key}\n비어 있음"; // 빈 슬롯 표시
-                background.color = selected ? new Color(0.16f, 0.2f, 0.3f, 0.98f) : new Color(0.08f, 0.1f, 0.15f, 0.94f); // 빈 슬롯 색상 적용
+                slotText.text = $"{inputName}\n비어 있음"; // 빈 슬롯과 직접 사용 입력 표시
+                background.color = new Color(0.08f, 0.1f, 0.15f, 0.94f); // 빈 슬롯 기본 색상 적용
                 return; // 빈 슬롯 처리 종료
             }
 
             string status = GetStatus(card); // 카드 사용 상태 계산
-            string mark = selected ? ">" : " "; // 선택 강조 문자 계산
-            slotText.text = $"{mark} {key}  {KoreanUIStrings.GetCardName(card.Data)}\nMP {card.Data.MpCost}  |  {status}\n강화 +{card.UpgradeLevel}"; // 카드 정보 표시
+            slotText.text = $"{inputName}  {KoreanUIStrings.GetCardName(card.Data)}\nMP {card.Data.MpCost}  |  {status}\n강화 +{card.UpgradeLevel}"; // 카드 정보와 직접 사용 입력 표시
             Color baseColor = GetRarityColor(card.Data.Rarity); // 등급 기본 색상 계산
             if (status == "MP 부족") // MP 부족 여부 확인
             {
                 baseColor = Color.Lerp(baseColor, new Color(0.12f, 0.12f, 0.13f, 1f), 0.6f); // MP 부족 어둡게 표시
             }
 
-            background.color = selected ? Color.Lerp(baseColor, Color.white, 0.18f) : baseColor; // 선택 카드 밝게 강조
+            background.color = baseColor; // 선택 상태 없이 카드 등급 기본 색상 적용
         }
 
         private string GetStatus(RuntimeCard card) // 카드 사용 상태 계산

@@ -188,6 +188,14 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
                     return $"기본 MP 회복 +{relic.Value:F0}/초"; // 기본 MP 회복 증가 한글 효과 반환
                 case RelicEffectType.AttackDamagePercent: // 공격 카드 피해 증가 효과 처리
                     return $"공격 카드 피해 +{relic.Value * 100f:F0}%"; // 공격 카드 피해 증가 한글 효과 반환
+                case RelicEffectType.RestoreManaFlat: // 조건부 MP 즉시 회복 효과 처리
+                    return $"MP +{relic.Value:F0}"; // 조건부 MP 회복 한글 효과 반환
+                case RelicEffectType.AddShieldFlat: // 조건부 실드 추가 효과 처리
+                    return $"실드 +{relic.Value:F0}"; // 조건부 실드 추가 한글 효과 반환
+                case RelicEffectType.AddGoldFlat: // 조건부 골드 획득 효과 처리
+                    return $"골드 +{relic.Value:F0}"; // 조건부 골드 획득 한글 효과 반환
+                case RelicEffectType.TemporaryAttackDamagePercent: // 조건부 임시 공격 카드 피해 증가 효과 처리
+                    return $"공격 카드 피해 +{relic.Value * 100f:F0}% / {relic.EffectDuration:F0}초"; // 조건부 임시 공격 피해 한글 효과 반환
                 default: // 알 수 없는 유물 효과 처리
                     return "효과 없음"; // 알 수 없는 유물 효과 한글 표시 반환
             }
