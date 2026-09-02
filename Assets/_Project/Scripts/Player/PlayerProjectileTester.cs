@@ -46,7 +46,13 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         {
             Vector2 direction = aim.AimDirection.sqrMagnitude > 0.0001f ? aim.AimDirection.normalized : Vector2.right; // 현재 조준 방향 정규화
             Vector3 spawnPosition = transform.position + (Vector3)(direction * spawnDistance); // 투사체 생성 위치 계산
-            PlayerProjectile projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity); // 플레이어 투사체 인스턴스 생성
+            ProjectilePool pool = ProjectilePool.GetOrCreate(); // 현재 씬 투사체 풀 가져오기
+            PlayerProjectile projectile = pool.Spawn(projectilePrefab, spawnPosition, Quaternion.identity); // 플레이어 투사체 풀에서 가져오기
+            if (projectile == null) // 투사체 생성 성공 여부 확인
+            {
+                return; // 플레이어 투사체 발사 처리 중단
+            }
+
             projectile.Launch(direction, gameObject); // 현재 조준 방향으로 투사체 발사
         }
     }

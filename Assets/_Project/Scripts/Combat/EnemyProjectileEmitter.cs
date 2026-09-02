@@ -37,7 +37,13 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         private void Fire() // 적 투사체 발사 메서드
         {
             Vector2 direction = (target.position - transform.position).normalized; // 현재 플레이어 방향 계산
-            EnemyProjectile projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity); // 적 투사체 인스턴스 생성
+            ProjectilePool pool = ProjectilePool.GetOrCreate(); // 현재 씬 투사체 풀 가져오기
+            EnemyProjectile projectile = pool.Spawn(projectilePrefab, transform.position, Quaternion.identity); // 적 투사체 풀에서 가져오기
+            if (projectile == null) // 투사체 생성 성공 여부 확인
+            {
+                return; // 적 투사체 발사 처리 중단
+            }
+
             projectile.Launch(direction, gameObject); // 플레이어 방향으로 적 투사체 발사
         }
     }

@@ -13,6 +13,8 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         private Rigidbody2D body; // 투사체 Rigidbody2D 참조
         private GameObject owner; // 투사체 발사 주체 참조
         private float lifeRemaining; // 남은 투사체 수명
+        private ProjectilePool pool; // 투사체 반환 대상 풀 참조
+        private ProjectileBase poolPrefab; // 투사체 원본 프리팹 참조
 
         public abstract CombatFaction Faction { get; } // 투사체 진영 반환 속성
         public float Speed => speed; // 투사체 속도 반환 속성
@@ -35,6 +37,21 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             body.linearVelocity = launchDirection * speed; // 투사체 이동 속도 적용
         }
 
+        internal void AttachPool(ProjectilePool projectilePool, ProjectileBase sourcePrefab) // 투사체 풀 연결 메서드
+        {
+            pool = projectilePool; // 반환 대상 풀 저장
+            poolPrefab = sourcePrefab; // 원본 투사체 프리팹 저장
+        }
+
+        internal void ResetForPool() // 풀 반환 전 투사체 상태 초기화 메서드
+        {
+            CacheBody(); // Rigidbody2D 참조 준비
+            owner = null; // 발사 주체 참조 초기화
+            lifeRemaining = lifeTime; // 투사체 수명 초기화
+            body.linearVelocity = Vector2.zero; // 투사체 이동 속도 초기화
+            body.angularVelocity = 0f; // 투사체 회전 속도 초기화
+        }
+
         private void Awake() // 투사체 초기화 메서드
         {
             CacheBody(); // Rigidbody2D 참조 준비
@@ -54,7 +71,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 수명 종료 처리 생략
             }
 
-            Destroy(gameObject); // 수명 종료 투사체 제거
+            Despawn(); // 수명 종료 투사체 반환 또는 제거
         }
 
         private void OnTriggerEnter2D(Collider2D other) // 투사체 Trigger 충돌 처리 메서드
@@ -94,7 +111,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 비전투 Trigger 통과 처리
             }
 
-            Destroy(gameObject); // 벽 등 일반 충돌 시 투사체 제거
+            Despawn(); // 벽 등 일반 충돌 시 투사체 반환 또는 제거
         }
 
         private void CacheBody() // Rigidbody2D 참조 준비 메서드
@@ -145,7 +162,18 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 무적 등 피해 거부 시 투사체 유지
             }
 
-            Destroy(gameObject); // 피해 성공 후 투사체 제거
+            Despawn(); // 피해 성공 후 투사체 반환 또는 제거
+        }
+
+        private void Despawn() // 투사체 사용 종료 처리 메서드
+        {
+            if (pool != null && poolPrefab != null) // 풀 반환 가능 여부 확인
+            {
+                pool.Release(this, poolPrefab); // 투사체를 원본 풀에 반환
+                return; // 직접 제거 처리 생략
+            }
+
+            Destroy(gameObject); // 풀 미사용 투사체 제거
         }
     }
 }

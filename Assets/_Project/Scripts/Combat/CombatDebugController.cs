@@ -1,20 +1,31 @@
+using ProjectQ.Enemies; // 적 시스템 기능 사용
 using ProjectQ.Player; // 플레이어 전투 상태 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 using UnityEngine.InputSystem; // Unity Input System 기능 사용
 
 namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 {
-    public sealed class CombatDebugController : MonoBehaviour // 5일차 전투 상태 디버그 클래스
+    public sealed class CombatDebugController : MonoBehaviour // 전투 상태 디버그 클래스
     {
         [SerializeField] private PlayerStats playerStats; // 플레이어 전투 상태 참조
         [SerializeField] private PlayerHitbox playerHitbox; // 플레이어 피격 판정 참조
-        [SerializeField] private TestDamageable testDummy; // 테스트 더미 전투 상태 참조
+        [SerializeField] private TestDamageable testDummy; // 5일차 테스트 더미 호환 참조
+        [SerializeField] private EnemySpawner enemySpawner; // 6일차 적 스포너 참조
 
-        public void Configure(PlayerStats stats, PlayerHitbox hitbox, TestDamageable dummy) // 전투 디버그 참조 설정 메서드
+        public void Configure(PlayerStats stats, PlayerHitbox hitbox, TestDamageable dummy) // 5일차 전투 디버그 호환 설정 메서드
         {
             playerStats = stats; // 플레이어 전투 상태 참조 저장
             playerHitbox = hitbox; // 플레이어 피격 판정 참조 저장
             testDummy = dummy; // 테스트 더미 참조 저장
+            enemySpawner = null; // 적 스포너 참조 초기화
+        }
+
+        public void Configure(PlayerStats stats, PlayerHitbox hitbox, EnemySpawner spawner) // 6일차 전투 디버그 설정 메서드
+        {
+            playerStats = stats; // 플레이어 전투 상태 참조 저장
+            playerHitbox = hitbox; // 플레이어 피격 판정 참조 저장
+            enemySpawner = spawner; // 적 스포너 참조 저장
+            testDummy = null; // 기존 테스트 더미 참조 초기화
         }
 
         private void Update() // 전투 상태 디버그 입력 갱신 메서드
@@ -47,24 +58,29 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             if (Keyboard.current.rKey.wasPressedThisFrame) // 전투 상태 초기화 입력 확인
             {
                 playerStats.ResetStats(); // 플레이어 전투 상태 초기화
-                if (testDummy != null) // 테스트 더미 존재 여부 확인
+                if (testDummy != null) // 5일차 테스트 더미 존재 여부 확인
                 {
                     testDummy.ResetHealth(); // 테스트 더미 체력 초기화
+                }
+
+                if (enemySpawner != null) // 6일차 적 스포너 존재 여부 확인
+                {
+                    enemySpawner.RespawnAll(); // 모든 테스트 적 다시 생성
                 }
             }
         }
 
-        private void OnGUI() // 5일차 전투 상태 화면 표시 메서드
+        private void OnGUI() // 전투 상태 화면 표시 메서드
         {
-            GUILayout.BeginArea(new Rect(20f, 430f, 500f, 190f), GUI.skin.box); // 5일차 전투 디버그 패널 시작
-            GUILayout.Label("Project Q - Day 5 Combat Debug"); // 5일차 전투 디버그 제목 표시
+            GUILayout.BeginArea(new Rect(20f, 430f, 520f, 200f), GUI.skin.box); // 전투 디버그 패널 시작
+            GUILayout.Label(enemySpawner != null ? "Project Q - Day 6 Enemy Combat Debug" : "Project Q - Day 5 Combat Debug"); // 현재 전투 디버그 제목 표시
             GUILayout.Label($"HP : {ReadCurrentHealth():F0} / {ReadMaxHealth():F0}"); // 플레이어 체력 상태 표시
             GUILayout.Label($"MP : {ReadCurrentMana():F0} / {ReadMaxMana():F0}"); // 플레이어 마나 상태 표시
             GUILayout.Label($"Shield : {ReadCurrentShield():F0} / {ReadMaxShield():F0}"); // 플레이어 실드 상태 표시
             GUILayout.Label($"Invincible : {(playerHitbox != null && !playerHitbox.CanReceiveDamage)}"); // 플레이어 무적 상태 표시
-            GUILayout.Label($"Dummy HP : {ReadDummyHealth():F0} / {ReadDummyMaxHealth():F0}"); // 테스트 더미 체력 상태 표시
-            GUILayout.Label("Fire: Left Click / Gamepad X | H Heal | J Spend MP | K Restore MP | L Shield | R Reset"); // 5일차 전투 테스트 조작 표시
-            GUILayout.EndArea(); // 5일차 전투 디버그 패널 종료
+            GUILayout.Label(enemySpawner != null ? $"Active Enemies : {enemySpawner.ActiveEnemyCount}" : $"Dummy HP : {ReadDummyHealth():F0} / {ReadDummyMaxHealth():F0}"); // 현재 적 또는 테스트 더미 상태 표시
+            GUILayout.Label("Fire: Left Click / Gamepad X | H Heal | J Spend MP | K Restore MP | L Shield | R Reset"); // 전투 테스트 조작 표시
+            GUILayout.EndArea(); // 전투 디버그 패널 종료
         }
 
         private float ReadCurrentHealth() // 플레이어 현재 체력 읽기 메서드
