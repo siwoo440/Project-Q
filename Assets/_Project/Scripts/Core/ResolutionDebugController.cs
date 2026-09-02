@@ -8,13 +8,13 @@ namespace ProjectQ.Core // 프로젝트 코어 네임스페이스
         private const int ReferenceWidth = 1920; // 기준 화면 너비
         private const int ReferenceHeight = 1080; // 기준 화면 높이
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD // 에디터와 개발 빌드에서 해상도 디버그 활성화
         private void Update() // 개발 빌드 해상도 단축키 처리
         {
             Keyboard keyboard = Keyboard.current; // 현재 키보드 장치 가져오기
             if (keyboard == null) // 키보드 연결 여부 확인
             {
-                return;
+                return; // 키보드가 없으면 단축키 처리 생략
             }
 
             if (keyboard.f5Key.wasPressedThisFrame) // 1280x720 단축키 확인
@@ -56,6 +56,6 @@ namespace ProjectQ.Core // 프로젝트 코어 네임스페이스
             Screen.SetResolution(width, height, FullScreenMode.Windowed); // 지정 해상도 창 모드 적용
             Debug.Log($"[Project Q] Resolution changed to {width}x{height}."); // 해상도 변경 로그 출력
         }
-#endif
+#endif // 일반 배포 빌드에서 해상도 디버그 코드 제외
     }
 }
