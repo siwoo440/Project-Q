@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="ProjectQ.Editor.csproj" />
+  <Project Path="ProjectQ.Runtime.csproj" />
+</Solution>
