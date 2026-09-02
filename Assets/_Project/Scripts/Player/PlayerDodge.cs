@@ -20,6 +20,7 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         public Vector2 DodgeDirection => dodgeDirection; // 현재 회피 방향 반환
         public float DodgeSpeed => dodgeSpeed; // 현재 회피 속도 반환
         public float CooldownRemaining => cooldownRemaining; // 남은 회피 쿨타임 반환
+        public float CooldownDuration => dodgeCooldown; // 전체 회피 쿨타임 반환
 
         public void Configure(PlayerInputController inputController, PlayerMovement movementController) // 회피 참조 연결 메서드
         {

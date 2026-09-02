@@ -52,6 +52,11 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             body.angularVelocity = 0f; // 투사체 회전 속도 초기화
         }
 
+        internal void ForceDespawn() // 외부 일괄 투사체 정리 메서드
+        {
+            Despawn(); // 현재 투사체를 풀로 반환하거나 제거
+        }
+
         private void Awake() // 투사체 초기화 메서드
         {
             CacheBody(); // Rigidbody2D 참조 준비

@@ -7,6 +7,9 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
     {
         private static ProjectilePool instance; // 현재 씬 투사체 풀 참조
         private readonly Dictionary<ProjectileBase, Queue<ProjectileBase>> pools = new Dictionary<ProjectileBase, Queue<ProjectileBase>>(); // 프리팹별 대기 투사체 보관
+        private readonly HashSet<ProjectileBase> activeProjectiles = new HashSet<ProjectileBase>(); // 현재 활성 투사체 목록
+
+        public int ActiveCount => activeProjectiles.Count; // 현재 활성 투사체 수 반환
 
         public static ProjectilePool GetOrCreate() // 현재 씬 투사체 풀 반환 메서드
         {
@@ -43,6 +46,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             projectile.transform.SetPositionAndRotation(position, rotation); // 투사체 생성 위치와 회전 적용
             projectile.AttachPool(this, prefab); // 투사체 풀 반환 정보 연결
             projectile.gameObject.SetActive(true); // 투사체 활성화
+            activeProjectiles.Add(projectile); // 활성 투사체 목록에 등록
             return projectile as T; // 요청한 투사체 형식으로 반환
         }
 
@@ -53,6 +57,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 반환 처리 중단
             }
 
+            activeProjectiles.Remove(projectile); // 활성 투사체 목록에서 제거
             if (!projectile.gameObject.activeSelf) // 이미 비활성화된 투사체 여부 확인
             {
                 return; // 중복 반환 방지
@@ -62,6 +67,30 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             projectile.gameObject.SetActive(false); // 투사체 비활성화
             Queue<ProjectileBase> queue = GetQueue(sourcePrefab); // 원본 프리팹 대기열 가져오기
             queue.Enqueue(projectile); // 투사체를 재사용 대기열에 추가
+        }
+
+        public int ReleaseAllByFaction(CombatFaction faction) // 특정 진영 활성 투사체 일괄 반환 메서드
+        {
+            List<ProjectileBase> snapshot = new List<ProjectileBase>(activeProjectiles); // 활성 투사체 안전 순회 복사본 생성
+            int releasedCount = 0; // 실제 반환 투사체 수 초기화
+            foreach (ProjectileBase projectile in snapshot) // 활성 투사체 복사본 순회
+            {
+                if (projectile == null) // 파괴된 투사체 참조 여부 확인
+                {
+                    activeProjectiles.Remove(projectile); // 파괴된 참조를 활성 목록에서 제거
+                    continue; // 다음 투사체 확인
+                }
+
+                if (projectile.Faction != faction) // 정리 대상 진영 여부 확인
+                {
+                    continue; // 다른 진영 투사체 유지
+                }
+
+                projectile.ForceDespawn(); // 대상 진영 투사체를 즉시 풀로 반환
+                releasedCount++; // 반환 투사체 수 증가
+            }
+
+            return releasedCount; // 실제 반환된 투사체 수 반환
         }
 
         public void Prewarm<T>(T prefab, int count) where T : ProjectileBase // 투사체 사전 생성 메서드

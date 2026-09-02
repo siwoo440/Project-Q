@@ -12,14 +12,9 @@ namespace ProjectQ.Enemies // 적 시스템 네임스페이스
         [SerializeField] private bool spawnOnStart = true; // 게임 시작 자동 생성 여부
         private readonly List<EnemyController> activeEnemies = new List<EnemyController>(); // 현재 생존 적 목록
 
-        public int ActiveEnemyCount // 현재 생존 적 수 반환 속성
-        {
-            get // 현재 생존 적 수 계산 접근자
-            {
-                RemoveMissingEnemies(); // 파괴된 적 참조 정리
-                return activeEnemies.Count; // 생존 적 수 반환
-            }
-        }
+        public int ActiveEnemyCount => ReadActiveEnemyCount(); // 현재 생존 적 수 반환
+        public int SpawnPointCount => spawnPoints != null ? spawnPoints.Length : 0; // 설정된 적 생성 위치 수 반환
+        public bool SpawnOnStart => spawnOnStart; // 게임 시작 자동 생성 여부 반환
 
         public void Configure(EnemyController prefab, EnemyData data, Transform targetTransform, Transform[] points) // 적 스포너 참조 설정 메서드
         {
@@ -27,6 +22,11 @@ namespace ProjectQ.Enemies // 적 시스템 네임스페이스
             enemyData = data; // 생성 적 기본 데이터 저장
             target = targetTransform; // 생성 적 목표 저장
             spawnPoints = points; // 적 생성 위치 목록 저장
+        }
+
+        public void SetSpawnOnStart(bool enabled) // 게임 시작 자동 생성 설정 메서드
+        {
+            spawnOnStart = enabled; // 자동 적 생성 여부 저장
         }
 
         public void RespawnAll() // 모든 테스트 적 다시 생성 메서드
@@ -105,6 +105,12 @@ namespace ProjectQ.Enemies // 적 시스템 네임스페이스
             }
 
             activeEnemies.Clear(); // 생존 적 목록 초기화
+        }
+
+        private int ReadActiveEnemyCount() // 현재 생존 적 수 계산 메서드
+        {
+            RemoveMissingEnemies(); // 파괴된 적 참조 정리
+            return activeEnemies.Count; // 정리된 생존 적 수 반환
         }
 
         private void RemoveMissingEnemies() // 파괴된 적 참조 정리 메서드
