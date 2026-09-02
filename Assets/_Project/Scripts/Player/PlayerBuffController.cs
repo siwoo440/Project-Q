@@ -26,9 +26,10 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
 
         [SerializeField] private PlayerStats playerStats; // 플레이어 MP와 사망 상태 참조
         [SerializeField] private PlayerMovement playerMovement; // 플레이어 이동 속도 참조
+        [SerializeField] private float persistentAttackDamageBonus; // 유물 등 회차 영구 카드 공격 피해 보너스
         private readonly Dictionary<PlayerBuffType, ActiveBuff> activeBuffs = new Dictionary<PlayerBuffType, ActiveBuff>(); // 현재 활성 버프 목록
 
-        public float AttackDamageMultiplier => 1f + GetMagnitude(PlayerBuffType.AttackDamage); // 현재 공격 카드 피해 배율 반환
+        public float AttackDamageMultiplier => 1f + persistentAttackDamageBonus + GetMagnitude(PlayerBuffType.AttackDamage); // 영구 유물과 임시 버프가 합산된 공격 카드 피해 배율 반환
         public float MoveSpeedMultiplier => 1f + GetMagnitude(PlayerBuffType.MoveSpeed); // 현재 일반 이동 속도 배율 반환
         public float ManaRegenPerSecond => GetMagnitude(PlayerBuffType.ManaRegen); // 현재 초당 MP 회복량 반환
 
@@ -82,6 +83,11 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
 
             activeBuff.Remaining = Mathf.Max(activeBuff.Remaining, safeDuration); // 현재 버프 남은 시간을 더 긴 지속 시간으로 갱신
             ApplyMovementMultiplier(); // 이동 속도 관련 버프를 즉시 PlayerMovement에 반영
+        }
+
+        public void AddPersistentAttackDamageBonus(float amount) // 유물 기반 회차 영구 카드 공격 피해 보너스 추가 메서드
+        {
+            persistentAttackDamageBonus += Mathf.Max(0f, amount); // 회차 영구 카드 공격 피해 보너스 누적
         }
 
         public float GetMagnitude(PlayerBuffType type) // 지정 유형 현재 버프 효과량 반환 메서드

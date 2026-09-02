@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Reward_Gold30
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
   id: reward_gold_30
-  displayName: Gold Cache
-  description: Keep gold for the current run.
+  displayName: "\uACE8\uB4DC \uBCF4\uAE09\uD488"
+  description: "\uD604\uC7AC \uD68C\uCC28 \uACE8\uB4DC +30"
   type: 1
   cardData: {fileID: 0}
   goldAmount: 30
   healAmount: 0
-  relicPayload: {fileID: 0}
+  relicData: {fileID: 0}
   rarity: 0
   baseWeight: 1.2
   allowDuplicateCard: 1

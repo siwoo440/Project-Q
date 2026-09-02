@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: HomingShot
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_homing_shot
-  displayName: Homing Shot
-  description: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC744 \uCD94\uC801\uD55C\uB2E4."
+  displayName: "\uC720\uB3C4\uD0C4"
+  description: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC744 \uCD94\uC801\uD569\uB2C8\uB2E4."
   rarity: 2
   type: 0
   mpCost: 14
   cooldown: 1.2
-  upgradeValue: 0
+  upgradeValue: 3
   effect: {fileID: 11400000, guid: 23f35447426fc9d46a5129c4bdd79656, type: 2}

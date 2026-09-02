@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Focus
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_focus
-  displayName: Focus
-  description: Attack card damage +30% for 6 sec
+  displayName: "\uC9D1\uC911"
+  description: "6\uCD08 \uB3D9\uC548 \uACF5\uACA9 \uCE74\uB4DC \uD53C\uD574 +30%"
   rarity: 1
   type: 2
   mpCost: 12

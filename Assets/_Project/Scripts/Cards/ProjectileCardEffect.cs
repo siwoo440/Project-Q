@@ -57,9 +57,10 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
                 direction = Vector2.right; // 기본 방향 사용
             }
 
+            float upgradeBonus = context.Card != null ? context.Card.GetUpgradeBonus() : 0f; // 현재 런타임 카드 강화 피해 보너스 계산
             float damageMultiplier = buffs != null ? buffs.AttackDamageMultiplier : 1f; // 현재 플레이어 공격 카드 피해 배율 계산
-            float finalDamage = damage * damageMultiplier; // 공격 버프가 적용된 직접 피해량 계산
-            float finalExplosionDamage = explosionDamage * damageMultiplier; // 공격 버프가 적용된 폭발 피해량 계산
+            float finalDamage = (damage + upgradeBonus) * damageMultiplier; // 카드 강화와 공격 버프가 적용된 직접 피해량 계산
+            float finalExplosionDamage = (explosionDamage + upgradeBonus) * damageMultiplier; // 카드 강화와 공격 버프가 적용된 폭발 피해량 계산
             direction.Normalize(); // 발사 방향 정규화
             Vector3 spawnPosition = context.User.transform.position + (Vector3)(direction * spawnDistance); // 투사체 생성 위치 계산
             ProjectilePool pool = ProjectilePool.GetOrCreate(); // 기존 공통 풀 가져오기

@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Reward_Guard
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
   id: reward_guard
-  displayName: Guard
-  description: Add Guard to this run deck.
+  displayName: "\uBC29\uBCBD"
+  description: "\uD604\uC7AC \uD68C\uCC28 \uB371\uC5D0 \uBC29\uBCBD\uC744 \uCD94\uAC00\uD569\uB2C8\uB2E4."
   type: 0
   cardData: {fileID: 11400000, guid: 18ea1a9b04374a24d9512c0cc2f54a89, type: 2}
   goldAmount: 0
   healAmount: 0
-  relicPayload: {fileID: 0}
+  relicData: {fileID: 0}
   rarity: 0
   baseWeight: 1
   allowDuplicateCard: 1

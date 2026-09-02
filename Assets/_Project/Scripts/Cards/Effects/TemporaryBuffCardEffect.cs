@@ -33,7 +33,8 @@ namespace ProjectQ.Cards.Effects // 카드 효과 네임스페이스
                 return; // 임시 버프 카드 효과 실행 중단
             }
 
-            buffs.ApplyBuff(buffType, magnitude, duration, stackMode); // 설정된 유형과 중첩 규칙으로 플레이어 버프 적용
+            float finalMagnitude = magnitude + (context.Card != null ? context.Card.GetUpgradeBonus() : 0f); // 런타임 카드 강화 단계가 적용된 최종 버프 효과량 계산
+            buffs.ApplyBuff(buffType, finalMagnitude, duration, stackMode); // 강화가 적용된 유형과 중첩 규칙으로 플레이어 버프 적용
         }
     }
 }

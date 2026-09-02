@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Reward_QuickShot
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
   id: reward_quick_shot
-  displayName: Quick Shot
-  description: Add Quick Shot to this run deck.
+  displayName: "\uC18D\uC0AC\uD0C4"
+  description: "\uD604\uC7AC \uD68C\uCC28 \uB371\uC5D0 \uC18D\uC0AC\uD0C4\uC744 \uCD94\uAC00\uD569\uB2C8\uB2E4."
   type: 0
   cardData: {fileID: 11400000, guid: 4f3e5d9822a5b6c408daa9899e9a5c3a, type: 2}
   goldAmount: 0
   healAmount: 0
-  relicPayload: {fileID: 0}
+  relicData: {fileID: 0}
   rarity: 0
   baseWeight: 1
   allowDuplicateCard: 1

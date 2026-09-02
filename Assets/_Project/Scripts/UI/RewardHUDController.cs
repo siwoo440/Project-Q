@@ -1,5 +1,6 @@
 using System.Collections.Generic; // 보상 후보 목록 기능 사용
 using ProjectQ.Rewards; // 보상 시스템 기능 사용
+using ProjectQ.Relics; // 유물 보상 표시 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 using UnityEngine.InputSystem; // Unity Input System 기능 사용
 using UnityEngine.UI; // Unity UI 기능 사용
@@ -130,24 +131,29 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
 
         private string BuildRewardText(int index, RewardData reward) // 보상 유형별 카드 표시 문자열 생성 메서드
         {
-            string header = $"{index + 1}   {reward.DisplayName}"; // 보상 선택 번호와 표시 이름 문자열 생성
+            string header = $"{index + 1}   {KoreanUIStrings.GetRewardName(reward)}"; // 보상 선택 번호와 표시 이름 문자열 생성
             switch (reward.Type) // 보상 유형별 상세 문자열 분기
             {
                 case RewardType.Card: // 카드 보상 문자열 처리
                     if (reward.CardData == null) // 카드 보상 원본 데이터 존재 여부 확인
                     {
-                        return $"{header}\nINVALID CARD"; // 카드 데이터 누락 표시 반환
+                        return $"{header}\n카드 정보 오류"; // 카드 데이터 누락 표시 반환
                     }
 
-                    return $"{header}\nCARD  |  {reward.CardData.Rarity}\n{reward.CardData.Description}\nMP {reward.CardData.MpCost}  |  CD {reward.CardData.Cooldown:F1}\nCLICK OR {index + 1}"; // 카드 보상 상세 문자열 반환
+                    return $"{header}\n카드  |  {KoreanUIStrings.GetCardRarity(reward.CardData.Rarity)}\n{KoreanUIStrings.GetCardDescription(reward.CardData)}\nMP {reward.CardData.MpCost}  |  쿨타임 {reward.CardData.Cooldown:F1}\n클릭 또는 {index + 1}키"; // 카드 보상 상세 문자열 반환
                 case RewardType.Gold: // 골드 보상 문자열 처리
-                    return $"{header}\nGOLD +{reward.GoldAmount}\n{reward.Description}\nCLICK OR {index + 1}"; // 골드 보상 상세 문자열 반환
+                    return $"{header}\n골드 +{reward.GoldAmount}\n{KoreanUIStrings.GetRewardDescription(reward)}\n클릭 또는 {index + 1}키"; // 골드 보상 상세 문자열 반환
                 case RewardType.Heal: // 즉시 회복 보상 문자열 처리
-                    return $"{header}\nHEAL +{reward.HealAmount:F0} HP\n{reward.Description}\nCLICK OR {index + 1}"; // 회복 보상 상세 문자열 반환
+                    return $"{header}\nHP +{reward.HealAmount:F0} 회복\n{KoreanUIStrings.GetRewardDescription(reward)}\n클릭 또는 {index + 1}키"; // 회복 보상 상세 문자열 반환
                 case RewardType.Relic: // 유물 보상 문자열 처리
-                    return $"{header}\nRELIC\nDAY 12 LOCKED"; // 12일차 유물 보상 예약 문자열 반환
+                    if (reward.RelicData == null) // 유물 보상 원본 데이터 존재 여부 확인
+                    {
+                        return $"{header}\n유물 정보 오류"; // 유물 데이터 누락 표시 반환
+                    }
+
+                    return $"{header}\n유물  |  {KoreanUIStrings.GetRelicRarity(reward.RelicData.Rarity)}\n{KoreanUIStrings.GetRelicDescription(reward.RelicData)}\n{KoreanUIStrings.GetRelicEffect(reward.RelicData)}\n클릭 또는 {index + 1}키"; // 유물 보상 상세 문자열 반환
                 default: // 알 수 없는 보상 유형 처리
-                    return $"{header}\nUNKNOWN"; // 알 수 없는 보상 문자열 반환
+                    return $"{header}\n알 수 없는 보상"; // 알 수 없는 보상 문자열 반환
             }
         }
 
@@ -159,7 +165,7 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
             }
 
             int gold = runResources != null ? runResources.Gold : 0; // 현재 회차 보유 골드 안전하게 계산
-            goldText.text = $"RUN GOLD  {gold}"; // 현재 회차 보유 골드 표시
+            goldText.text = $"보유 골드  {gold}"; // 현재 회차 보유 골드 표시
         }
     }
 }

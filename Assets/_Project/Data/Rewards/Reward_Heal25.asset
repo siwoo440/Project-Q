@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Reward_Heal25
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
   id: reward_heal_25
-  displayName: Camp Recovery
-  description: Recover HP immediately.
+  displayName: "\uC57C\uC601\uC9C0 \uD68C\uBCF5"
+  description: "HP 25 \uC989\uC2DC \uD68C\uBCF5"
   type: 2
   cardData: {fileID: 0}
   goldAmount: 0
   healAmount: 25
-  relicPayload: {fileID: 0}
+  relicData: {fileID: 0}
   rarity: 0
   baseWeight: 1.1
   allowDuplicateCard: 1

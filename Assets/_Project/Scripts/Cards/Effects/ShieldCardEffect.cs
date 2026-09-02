@@ -27,7 +27,8 @@ namespace ProjectQ.Cards.Effects // 카드 효과 네임스페이스
                 return; // 실드 카드 효과 실행 중단
             }
 
-            stats.AddShield(shieldAmount); // 플레이어 현재 실드에 카드 설정량 추가
+            float finalShield = shieldAmount + (context.Card != null ? context.Card.GetUpgradeBonus() : 0f); // 런타임 카드 강화 단계가 적용된 최종 실드량 계산
+            stats.AddShield(finalShield); // 플레이어 현재 실드에 강화가 적용된 카드 실드량 추가
         }
     }
 }

@@ -13,13 +13,14 @@ MonoBehaviour:
   m_Name: Reward_Haste
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
   id: reward_haste
-  displayName: Haste
-  description: Add Haste to this run deck.
+  displayName: "\uAC00\uC18D"
+  description: "\uD604\uC7AC \uD68C\uCC28 \uB371\uC5D0 \uAC00\uC18D \uCE74\uB4DC\uB97C
+    \uCD94\uAC00\uD569\uB2C8\uB2E4."
   type: 0
   cardData: {fileID: 11400000, guid: 3cefd791d685c0b46bac135d508ecf87, type: 2}
   goldAmount: 0
   healAmount: 0
-  relicPayload: {fileID: 0}
+  relicData: {fileID: 0}
   rarity: 0
   baseWeight: 0.9
   allowDuplicateCard: 1

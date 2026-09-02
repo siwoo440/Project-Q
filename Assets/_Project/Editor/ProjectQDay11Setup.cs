@@ -46,11 +46,11 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             TemporaryBuffCardEffect hasteEffect = CreateBuffEffect("Effect_Haste.asset", PlayerBuffType.MoveSpeed, 0.25f, 5f, BuffStackMode.RefreshDuration); // Haste 이동 속도 버프 생성
             TemporaryBuffCardEffect manaFlowEffect = CreateBuffEffect("Effect_ManaFlow.asset", PlayerBuffType.ManaRegen, 5f, 6f, BuffStackMode.StackAndRefresh); // Mana Flow 초당 MP 회복 버프 생성
 
-            CardData guard = CreateCard("Guard.asset", "card_guard", "Guard", "Shield +25", CardRarity.Common, CardType.Defense, 10, 1.5f, 5f, guardEffect); // Guard 방어 카드 생성
-            CardData recovery = CreateCard("Recovery.asset", "card_recovery", "Recovery", "Recover 20 HP", CardRarity.Uncommon, CardType.Utility, 15, 2f, 5f, recoveryEffect); // Recovery 회복 카드 생성
-            CardData focus = CreateCard("Focus.asset", "card_focus", "Focus", "Attack card damage +30% for 6 sec", CardRarity.Uncommon, CardType.Utility, 12, 2.5f, 0.1f, focusEffect); // Focus 공격력 버프 카드 생성
-            CardData haste = CreateCard("Haste.asset", "card_haste", "Haste", "Move speed +25% for 5 sec", CardRarity.Common, CardType.Utility, 10, 2f, 0.1f, hasteEffect); // Haste 이동 속도 버프 카드 생성
-            CardData manaFlow = CreateCard("ManaFlow.asset", "card_mana_flow", "Mana Flow", "Restore 5 MP per sec for 6 sec", CardRarity.Rare, CardType.Utility, 14, 3f, 1f, manaFlowEffect); // Mana Flow MP 회복 버프 카드 생성
+            CardData guard = CreateCard("Guard.asset", "card_guard", "방벽", "실드 +25", CardRarity.Common, CardType.Defense, 10, 1.5f, 5f, guardEffect); // Guard 방어 카드 생성
+            CardData recovery = CreateCard("Recovery.asset", "card_recovery", "회복", "HP 20 회복", CardRarity.Uncommon, CardType.Utility, 15, 2f, 5f, recoveryEffect); // Recovery 회복 카드 생성
+            CardData focus = CreateCard("Focus.asset", "card_focus", "집중", "6초 동안 공격 카드 피해 +30%", CardRarity.Uncommon, CardType.Utility, 12, 2.5f, 0.1f, focusEffect); // Focus 공격력 버프 카드 생성
+            CardData haste = CreateCard("Haste.asset", "card_haste", "가속", "5초 동안 이동 속도 +25%", CardRarity.Common, CardType.Utility, 10, 2f, 0.1f, hasteEffect); // Haste 이동 속도 버프 카드 생성
+            CardData manaFlow = CreateCard("ManaFlow.asset", "card_mana_flow", "마나 순환", "6초 동안 초당 MP +5 회복", CardRarity.Rare, CardType.Utility, 14, 3f, 1f, manaFlowEffect); // Mana Flow MP 회복 버프 카드 생성
 
             CardData quick = LoadCard("QuickShot.asset"); // 10일차 Quick Shot 카드 불러오기
             CardData pierce = LoadCard("PierceShot.asset"); // 10일차 Pierce Shot 카드 불러오기
@@ -62,14 +62,14 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
                 return; // 11일차 구성 중단
             }
 
-            RewardData rewardQuick = CreateCardReward("Reward_QuickShot.asset", "reward_quick_shot", "Quick Shot", "Add Quick Shot to this run deck.", quick, 1f); // Quick Shot 카드 보상 생성
-            RewardData rewardGuard = CreateCardReward("Reward_Guard.asset", "reward_guard", "Guard", "Add Guard to this run deck.", guard, 1f); // Guard 카드 보상 생성
-            RewardData rewardRecovery = CreateCardReward("Reward_Recovery.asset", "reward_recovery", "Recovery", "Add Recovery to this run deck.", recovery, 1f); // Recovery 카드 보상 생성
-            RewardData rewardFocus = CreateCardReward("Reward_Focus.asset", "reward_focus", "Focus", "Add Focus to this run deck.", focus, 0.9f); // Focus 카드 보상 생성
-            RewardData rewardHaste = CreateCardReward("Reward_Haste.asset", "reward_haste", "Haste", "Add Haste to this run deck.", haste, 0.9f); // Haste 카드 보상 생성
-            RewardData rewardMana = CreateCardReward("Reward_ManaFlow.asset", "reward_mana_flow", "Mana Flow", "Add Mana Flow to this run deck.", manaFlow, 0.8f); // Mana Flow 카드 보상 생성
-            RewardData rewardGold = CreateGoldReward("Reward_Gold30.asset", "reward_gold_30", "Gold Cache", "Keep gold for the current run.", 30, CardRarity.Common, 1.2f); // 30 골드 즉시 보상 생성
-            RewardData rewardHeal = CreateHealReward("Reward_Heal25.asset", "reward_heal_25", "Camp Recovery", "Recover HP immediately.", 25f, CardRarity.Common, 1.1f); // HP 25 즉시 회복 보상 생성
+            RewardData rewardQuick = CreateCardReward("Reward_QuickShot.asset", "reward_quick_shot", "속사탄", "현재 회차 덱에 속사탄을 추가합니다.", quick, 1f); // Quick Shot 카드 보상 생성
+            RewardData rewardGuard = CreateCardReward("Reward_Guard.asset", "reward_guard", "방벽", "현재 회차 덱에 방벽을 추가합니다.", guard, 1f); // Guard 카드 보상 생성
+            RewardData rewardRecovery = CreateCardReward("Reward_Recovery.asset", "reward_recovery", "회복", "현재 회차 덱에 회복 카드를 추가합니다.", recovery, 1f); // Recovery 카드 보상 생성
+            RewardData rewardFocus = CreateCardReward("Reward_Focus.asset", "reward_focus", "집중", "현재 회차 덱에 집중 카드를 추가합니다.", focus, 0.9f); // Focus 카드 보상 생성
+            RewardData rewardHaste = CreateCardReward("Reward_Haste.asset", "reward_haste", "가속", "현재 회차 덱에 가속 카드를 추가합니다.", haste, 0.9f); // Haste 카드 보상 생성
+            RewardData rewardMana = CreateCardReward("Reward_ManaFlow.asset", "reward_mana_flow", "마나 순환", "현재 회차 덱에 마나 순환 카드를 추가합니다.", manaFlow, 0.8f); // Mana Flow 카드 보상 생성
+            RewardData rewardGold = CreateGoldReward("Reward_Gold30.asset", "reward_gold_30", "골드 보급품", "현재 회차 골드 +30", 30, CardRarity.Common, 1.2f); // 30 골드 즉시 보상 생성
+            RewardData rewardHeal = CreateHealReward("Reward_Heal25.asset", "reward_heal_25", "야영지 회복", "HP 25 즉시 회복", 25f, CardRarity.Common, 1.1f); // HP 25 즉시 회복 보상 생성
 
             EditorSceneManager.SaveOpenScenes(); // 현재 열린 씬 변경 사항 저장
             string previousScenePath = SceneManager.GetActiveScene().path; // 현재 작업 씬 경로 저장
@@ -322,9 +322,9 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             overlay.sprite = null; // Unity UISprite 없이 단색 보상 배경 사용
             overlay.color = new Color(0.008f, 0.012f, 0.028f, 0.94f); // 전투 보상 화면 딥 네이비 배경 적용
 
-            Text title = CreateText("RewardTitle", panel, "COMBAT CLEAR  /  CHOOSE ONE REWARD", font, 34, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, -60f), new Vector2(900f, 54f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f)); // 보상 화면 제목 생성
+            Text title = CreateText("RewardTitle", panel, "전투 클리어  /  보상 하나를 선택하세요", font, 34, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, -60f), new Vector2(900f, 54f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f)); // 보상 화면 제목 생성
             title.color = new Color(0.86f, 0.94f, 1f, 1f); // 보상 화면 제목 청백색 적용
-            Text goldText = CreateText("RewardGoldText", panel, "RUN GOLD  0", font, 20, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, -112f), new Vector2(360f, 38f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f)); // 현재 회차 골드 표시 생성
+            Text goldText = CreateText("RewardGoldText", panel, "보유 골드  0", font, 20, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, -112f), new Vector2(360f, 38f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f)); // 현재 회차 골드 표시 생성
             goldText.color = new Color(1f, 0.78f, 0.22f, 1f); // 골드 표시 금색 적용
 
             for (int index = 0; index < 3; index++) // 보상 카드 선택 영역 3개 생성 반복
@@ -334,11 +334,11 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
                 Image choiceImage = choice.gameObject.AddComponent<Image>(); // 보상 카드 단색 배경 Image 추가
                 choiceImage.sprite = null; // Unity UISprite 없이 단색 보상 카드 배경 사용
                 choiceImage.color = GetChoiceColor(index); // 보상 카드 위치별 구분 색상 적용
-                Text choiceText = CreateText("Content", choice, $"{index + 1}\\nREWARD", font, 21, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(18f, -18f), new Vector2(294f, 334f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 보상 카드 상세 텍스트 생성
+                Text choiceText = CreateText("Content", choice, $"{index + 1}\\n보상", font, 21, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(18f, -18f), new Vector2(294f, 334f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 보상 카드 상세 텍스트 생성
                 choiceText.color = Color.white; // 보상 카드 상세 텍스트 흰색 적용
             }
 
-            Text guide = CreateText("RewardGuide", panel, "CLICK A REWARD  /  KEY 1 2 3", font, 19, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, 70f), new Vector2(620f, 42f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f)); // 보상 선택 입력 안내 생성
+            Text guide = CreateText("RewardGuide", panel, "보상을 클릭하거나 1·2·3 키로 선택", font, 19, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, 70f), new Vector2(620f, 42f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f)); // 보상 선택 입력 안내 생성
             guide.color = new Color(0.65f, 0.75f, 0.9f, 1f); // 보상 선택 안내 회청색 적용
             RewardHUDController hud = canvas.gameObject.AddComponent<RewardHUDController>(); // CombatHUDCanvas에 보상 HUD 컨트롤러 추가
             hud.Configure(controller, panel.gameObject, GetChoiceRects(canvas), GetChoiceTexts(canvas), goldText, resources); // 보상 컨트롤러와 카드 영역과 골드 표시 연결

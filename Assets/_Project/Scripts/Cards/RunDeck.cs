@@ -4,7 +4,7 @@ using UnityEngine; // Unity 기본 기능 사용
 
 namespace ProjectQ.Cards // 카드 시스템 네임스페이스
 {
-    public sealed class RunDeck : MonoBehaviour // 회차 중 카드 덱 순환 관리 클래스
+    public sealed class RunDeck : MonoBehaviour // 회차 중 카드 덱 순환과 성장 관리 클래스
     {
         [SerializeField] private List<CardData> startingDeck = new List<CardData>(); // 회차 시작 카드 원본 목록
         [SerializeField] private int maxActiveSlots = 2; // 최대 활성 카드 슬롯 수
@@ -19,6 +19,8 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
         public event Action<int, RuntimeCard> CardDrawn; // 카드 뽑기 이벤트
         public event Action<RuntimeCard> CardDiscarded; // 카드 버림 이벤트
         public event Action<RuntimeCard> CardAdded; // 전투 보상 카드 획득 이벤트
+        public event Action<RuntimeCard> CardUpgraded; // 런타임 카드 강화 완료 이벤트
+        public event Action<RuntimeCard> CardRemoved; // 런타임 카드 제거 완료 이벤트
         public event Action<int, RuntimeCard> ActiveSlotChanged; // 활성 슬롯 변경 이벤트
         public event Action DeckShuffled; // 덱 재셔플 이벤트
         public event Action StateChanged; // 덱 상태 변경 이벤트
@@ -52,7 +54,7 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             TickList(activeSlots); // Active Slot 쿨타임 갱신
         }
 
-        public void InitializeDeck() // 회차 덱 초기화 메서드
+        public void InitializeDeck() // 회차 시작 덱 초기화 메서드
         {
             drawPile.Clear(); // Draw Pile 초기화
             discardPile.Clear(); // Discard Pile 초기화
@@ -67,15 +69,36 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
                 }
             }
 
-            for (int index = 0; index < maxActiveSlots; index++) // 활성 슬롯 수만큼 반복
-            {
-                activeSlots.Add(null); // 빈 활성 슬롯 추가
-            }
-
+            CreateEmptyActiveSlots(); // 활성 슬롯 빈 구조 생성
             Shuffle(drawPile); // 첫 Draw Pile 셔플
             FillEmptySlots(); // 활성 슬롯 카드 채우기
             DeckInitialized?.Invoke(); // 덱 초기화 이벤트 전달
             StateChanged?.Invoke(); // 덱 상태 이벤트 전달
+        }
+
+        public void ResetCombatStatePreserveGrowth() // 현재 회차 성장 상태를 유지한 전투 재시작 메서드
+        {
+            List<RuntimeCard> allCards = GetAllCards(); // 현재 획득·강화 상태가 유지된 모든 런타임 카드 수집
+            drawPile.Clear(); // 기존 Draw Pile 초기화
+            discardPile.Clear(); // 기존 Discard Pile 초기화
+            activeSlots.Clear(); // 기존 Active Slot 초기화
+            EnsureRandom(); // 재셔플 난수 생성기 준비
+
+            foreach (RuntimeCard card in allCards) // 현재 회차 보유 카드 전체 순회
+            {
+                if (card == null) // 유효 런타임 카드 여부 확인
+                {
+                    continue; // 무효 카드 재구성 제외
+                }
+
+                card.ResetCooldown(); // 전투 Retry 시 카드 개별 쿨타임 초기화
+                drawPile.Add(card); // 성장 상태를 유지한 동일 RuntimeCard를 Draw Pile에 복귀
+            }
+
+            CreateEmptyActiveSlots(); // 활성 슬롯 빈 구조 다시 생성
+            Shuffle(drawPile); // 현재 회차 덱 재셔플
+            FillEmptySlots(); // Q E 활성 슬롯 다시 채우기
+            StateChanged?.Invoke(); // 덱 재구성 상태 변경 이벤트 전달
         }
 
         public RuntimeCard GetActiveCard(int slotIndex) // 활성 슬롯 카드 반환 메서드
@@ -86,6 +109,45 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             }
 
             return activeSlots[slotIndex]; // 현재 슬롯 카드 반환
+        }
+
+        public List<RuntimeCard> GetAllCards() // 현재 회차 모든 런타임 카드 스냅샷 반환 메서드
+        {
+            List<RuntimeCard> result = new List<RuntimeCard>(); // 카드 스냅샷 결과 목록 생성
+            result.AddRange(drawPile); // Draw Pile 카드 추가
+            result.AddRange(discardPile); // Discard Pile 카드 추가
+
+            foreach (RuntimeCard card in activeSlots) // Active Slot 카드 전체 순회
+            {
+                if (card != null) // 활성 카드 존재 여부 확인
+                {
+                    result.Add(card); // 활성 카드 스냅샷 목록에 추가
+                }
+            }
+
+            return result; // 현재 회차 카드 스냅샷 반환
+        }
+
+        public RuntimeCard FindCard(string instanceId) // 런타임 카드 인스턴스 식별자로 카드 검색 메서드
+        {
+            if (string.IsNullOrEmpty(instanceId)) // 검색할 인스턴스 식별자 유효성 확인
+            {
+                return null; // 유효하지 않은 카드 검색 결과 반환
+            }
+
+            RuntimeCard found = FindCard(drawPile, instanceId); // Draw Pile에서 카드 검색
+            if (found != null) // Draw Pile 카드 발견 여부 확인
+            {
+                return found; // 발견 카드 반환
+            }
+
+            found = FindCard(discardPile, instanceId); // Discard Pile에서 카드 검색
+            if (found != null) // Discard Pile 카드 발견 여부 확인
+            {
+                return found; // 발견 카드 반환
+            }
+
+            return FindCard(activeSlots, instanceId); // Active Slot에서 카드 검색 후 반환
         }
 
         public bool AddCard(CardData cardData) // 전투 보상 카드 현재 회차 덱 추가 메서드
@@ -100,6 +162,47 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             CardAdded?.Invoke(runtimeCard); // 회차 덱 카드 획득 이벤트 전달
             StateChanged?.Invoke(); // 덱 전체 상태 변경 이벤트 전달
             return true; // 카드 추가 성공 반환
+        }
+
+        public bool TryUpgradeCard(string instanceId) // 런타임 카드 한 단계 강화 시도 메서드
+        {
+            RuntimeCard card = FindCard(instanceId); // 강화 대상 런타임 카드 검색
+            if (card == null || !card.TryUpgrade()) // 카드 존재와 최대 강화 단계 여부 확인
+            {
+                return false; // 카드 강화 실패 반환
+            }
+
+            CardUpgraded?.Invoke(card); // 카드 강화 완료 이벤트 전달
+            StateChanged?.Invoke(); // 덱 성장 상태 변경 이벤트 전달
+            return true; // 카드 강화 성공 반환
+        }
+
+        public bool TryRemoveCard(string instanceId) // 런타임 카드 안전 제거 시도 메서드
+        {
+            if (TotalCardCount <= maxActiveSlots) // 활성 슬롯 수 이하로 덱이 줄어드는지 확인
+            {
+                return false; // 최소 덱 크기 보호로 카드 제거 실패 반환
+            }
+
+            RuntimeCard removed = RemoveCard(drawPile, instanceId); // Draw Pile에서 제거 시도
+            if (removed == null) // Draw Pile 제거 실패 여부 확인
+            {
+                removed = RemoveCard(discardPile, instanceId); // Discard Pile에서 제거 시도
+            }
+
+            if (removed == null) // 비활성 더미에서 제거 실패 여부 확인
+            {
+                removed = RemoveActiveCard(instanceId); // Active Slot에서 제거 시도
+            }
+
+            if (removed == null) // 모든 덱 영역 카드 제거 실패 여부 확인
+            {
+                return false; // 카드 제거 실패 반환
+            }
+
+            CardRemoved?.Invoke(removed); // 카드 제거 완료 이벤트 전달
+            StateChanged?.Invoke(); // 덱 성장 상태 변경 이벤트 전달
+            return true; // 카드 제거 성공 반환
         }
 
         public bool ContainsCardId(string cardId) // 현재 회차 덱 카드 ID 보유 여부 확인 메서드
@@ -138,6 +241,14 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             FillSlot(slotIndex); // 새 카드 자동 보충
             StateChanged?.Invoke(); // 덱 상태 변경 이벤트 전달
             return true; // 카드 사용 성공 반환
+        }
+
+        private void CreateEmptyActiveSlots() // 활성 카드 슬롯 빈 구조 생성 메서드
+        {
+            for (int index = 0; index < maxActiveSlots; index++) // 활성 슬롯 수만큼 반복
+            {
+                activeSlots.Add(null); // 빈 활성 슬롯 추가
+            }
         }
 
         private void FillEmptySlots() // 빈 활성 슬롯 전체 보충 메서드
@@ -189,12 +300,14 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
 
             drawPile.AddRange(discardPile); // 버린 카드를 Draw Pile로 이동
             discardPile.Clear(); // Discard Pile 초기화
+            EnsureRandom(); // 셔플 난수 생성기 준비
             Shuffle(drawPile); // Draw Pile 재셔플
             DeckShuffled?.Invoke(); // 재셔플 이벤트 전달
         }
 
         private void Shuffle(List<RuntimeCard> cards) // Fisher-Yates 셔플 메서드
         {
+            EnsureRandom(); // 셔플 난수 생성기 준비
             for (int index = cards.Count - 1; index > 0; index--) // 카드 뒤에서 앞으로 순회
             {
                 int swapIndex = random.Next(index + 1); // 교환 인덱스 선택
@@ -204,6 +317,55 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             }
 
             DeckShuffled?.Invoke(); // 셔플 이벤트 전달
+        }
+
+        private RuntimeCard RemoveActiveCard(string instanceId) // Active Slot 카드 안전 제거 메서드
+        {
+            for (int index = 0; index < activeSlots.Count; index++) // Active Slot 전체 순회
+            {
+                RuntimeCard card = activeSlots[index]; // 현재 활성 슬롯 카드 가져오기
+                if (card == null || card.InstanceId != instanceId) // 제거 대상 카드 일치 여부 확인
+                {
+                    continue; // 현재 활성 슬롯 제거 처리 생략
+                }
+
+                activeSlots[index] = null; // 제거 대상 활성 슬롯 비우기
+                ActiveSlotChanged?.Invoke(index, null); // 활성 슬롯 비움 이벤트 전달
+                FillSlot(index); // 제거 직후 Draw Pile에서 다음 카드 보충
+                return card; // 제거한 런타임 카드 반환
+            }
+
+            return null; // Active Slot 제거 대상 없음 반환
+        }
+
+        private static RuntimeCard RemoveCard(List<RuntimeCard> cards, string instanceId) // 지정 덱 영역 카드 제거 메서드
+        {
+            for (int index = 0; index < cards.Count; index++) // 지정 덱 영역 전체 순회
+            {
+                RuntimeCard card = cards[index]; // 현재 런타임 카드 가져오기
+                if (card == null || card.InstanceId != instanceId) // 제거 대상 카드 일치 여부 확인
+                {
+                    continue; // 현재 카드 제거 처리 생략
+                }
+
+                cards.RemoveAt(index); // 지정 덱 영역에서 대상 카드 제거
+                return card; // 제거한 런타임 카드 반환
+            }
+
+            return null; // 지정 덱 영역 제거 대상 없음 반환
+        }
+
+        private static RuntimeCard FindCard(List<RuntimeCard> cards, string instanceId) // 지정 덱 영역 카드 인스턴스 검색 메서드
+        {
+            foreach (RuntimeCard card in cards) // 지정 덱 영역 런타임 카드 전체 순회
+            {
+                if (card != null && card.InstanceId == instanceId) // 런타임 카드 인스턴스 식별자 일치 여부 확인
+                {
+                    return card; // 일치 런타임 카드 반환
+                }
+            }
+
+            return null; // 지정 덱 영역 일치 카드 없음 반환
         }
 
         private static void TickList(List<RuntimeCard> cards) // 카드 목록 쿨타임 갱신 메서드
@@ -228,6 +390,14 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             }
 
             return false; // 지정 덱 영역에 동일 카드 ID 없음 반환
+        }
+
+        private void EnsureRandom() // 덱 셔플 난수 생성기 준비 메서드
+        {
+            if (random == null) // 셔플 난수 생성기 존재 여부 확인
+            {
+                random = new System.Random(shuffleSeed != 0 ? shuffleSeed : Environment.TickCount); // 테스트 시드 기반 셔플 난수 생성
+            }
         }
 
         private int CountCards() // 현재 전체 카드 수 계산 메서드

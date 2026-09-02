@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Guard
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_guard
-  displayName: Guard
-  description: Shield +25
+  displayName: "\uBC29\uBCBD"
+  description: "\uC2E4\uB4DC +25"
   rarity: 0
   type: 1
   mpCost: 10

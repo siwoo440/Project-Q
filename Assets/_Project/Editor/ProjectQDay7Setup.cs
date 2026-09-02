@@ -98,6 +98,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             Canvas canvas = canvasObject.GetComponent<Canvas>(); // 생성된 Canvas 컴포넌트 가져오기
             canvas.renderMode = RenderMode.ScreenSpaceOverlay; // 화면 고정 오버레이 HUD 설정
             canvas.sortingOrder = 100; // 게임 화면 위에 HUD 표시
+            canvasObject.AddComponent<KoreanUIFontApplier>(); // 새 전투 HUD Canvas에 한글 표시 가능 폰트 자동 적용 컴포넌트 추가
             CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>(); // HUD CanvasScaler 가져오기
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; // 기준 해상도 비례 HUD 스케일 설정
             scaler.referenceResolution = new Vector2(1920f, 1080f); // 프로젝트 기준 HUD 해상도 설정
@@ -109,13 +110,13 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             panelImage.sprite = null; // 내장 UISprite 없이 단색 패널 사용
             panelImage.color = new Color(0.04f, 0.05f, 0.08f, 0.82f); // 전투 HUD 반투명 배경 색상 적용
 
-            CreateText("Title", panel, "PROJECT Q / COMBAT", font, 24, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, -16f), new Vector2(500f, 32f)); // 전투 HUD 제목 생성
-            CreateBar(panel, "Health", "HP", -62f, new Color(0.9f, 0.2f, 0.2f, 1f), font, out Image hpFill, out Text hpText); // 체력 HUD 게이지 생성
-            CreateBar(panel, "Mana", "MP", -108f, new Color(0.25f, 0.55f, 1f, 1f), font, out Image mpFill, out Text mpText); // 마나 HUD 게이지 생성
-            CreateBar(panel, "Shield", "SH", -154f, new Color(0.25f, 0.9f, 1f, 1f), font, out Image shieldFill, out Text shieldText); // 실드 HUD 게이지 생성
-            CreateBar(panel, "Dodge", "DG", -200f, new Color(1f, 0.82f, 0.2f, 1f), font, out Image dodgeFill, out Text dodgeText); // 회피 HUD 게이지 생성
-            Text enemyText = CreateText("EnemyText", panel, "ENEMIES 0 / 0", font, 20, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, -246f), new Vector2(250f, 34f)); // 남은 적 수 텍스트 생성
-            Text stateText = CreateText("StateText", panel, "COMBAT : IDLE", font, 20, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(280f, -246f), new Vector2(250f, 34f)); // 전투 상태 텍스트 생성
+            CreateText("Title", panel, "프로젝트 Q / 전투", font, 24, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, -16f), new Vector2(500f, 32f)); // 전투 HUD 제목 생성
+            CreateBar(panel, "Health", "체력", -62f, new Color(0.9f, 0.2f, 0.2f, 1f), font, out Image hpFill, out Text hpText); // 체력 HUD 게이지 생성
+            CreateBar(panel, "Mana", "마나", -108f, new Color(0.25f, 0.55f, 1f, 1f), font, out Image mpFill, out Text mpText); // 마나 HUD 게이지 생성
+            CreateBar(panel, "Shield", "실드", -154f, new Color(0.25f, 0.9f, 1f, 1f), font, out Image shieldFill, out Text shieldText); // 실드 HUD 게이지 생성
+            CreateBar(panel, "Dodge", "회피", -200f, new Color(1f, 0.82f, 0.2f, 1f), font, out Image dodgeFill, out Text dodgeText); // 회피 HUD 게이지 생성
+            Text enemyText = CreateText("EnemyText", panel, "적 0 / 0", font, 20, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, -246f), new Vector2(250f, 34f)); // 남은 적 수 텍스트 생성
+            Text stateText = CreateText("StateText", panel, "전투 : 대기", font, 20, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(280f, -246f), new Vector2(250f, 34f)); // 전투 상태 텍스트 생성
             Text clearText = CreateCenterClearText(canvasObject.transform, font); // 중앙 전투 클리어 텍스트 생성
             CombatHUDController hud = canvasObject.AddComponent<CombatHUDController>(); // 전투 HUD 상태 컨트롤러 추가
             hud.Configure(stats, dodge, arena, spawner, hpFill, mpFill, shieldFill, dodgeFill, hpText, mpText, shieldText, dodgeText, enemyText, stateText, clearText); // 플레이어와 아레나 상태를 HUD에 연결
@@ -150,7 +151,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             text.fontStyle = FontStyle.Bold; // 클리어 문구 굵은 글씨 설정
             text.alignment = TextAnchor.MiddleCenter; // 클리어 문구 중앙 정렬
             text.color = Color.white; // 클리어 문구 글자 색상 설정
-            text.text = "COMBAT CLEAR"; // 클리어 완료 문구 설정
+            text.text = "전투 클리어"; // 클리어 완료 문구 설정
             text.enabled = false; // 전투 시작 시 클리어 문구 숨김
             return text; // 생성된 클리어 텍스트 반환
         }

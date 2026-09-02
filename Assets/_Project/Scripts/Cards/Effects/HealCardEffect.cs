@@ -27,7 +27,8 @@ namespace ProjectQ.Cards.Effects // 카드 효과 네임스페이스
                 return; // 회복 카드 효과 실행 중단
             }
 
-            stats.Heal(healAmount); // 플레이어 체력을 카드 설정량만큼 회복
+            float finalHeal = healAmount + (context.Card != null ? context.Card.GetUpgradeBonus() : 0f); // 런타임 카드 강화 단계가 적용된 최종 회복량 계산
+            stats.Heal(finalHeal); // 플레이어 체력을 강화가 적용된 카드 회복량만큼 회복
         }
     }
 }

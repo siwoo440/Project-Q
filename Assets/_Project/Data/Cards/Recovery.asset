@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Recovery
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_recovery
-  displayName: Recovery
-  description: Recover 20 HP
+  displayName: "\uD68C\uBCF5"
+  description: "HP 20 \uD68C\uBCF5"
   rarity: 1
   type: 2
   mpCost: 15

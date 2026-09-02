@@ -115,8 +115,8 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             Image dialogImage = dialog.gameObject.AddComponent<Image>(); // Game Over 대화상자 배경 이미지 추가
             dialogImage.sprite = null; // 내장 UISprite 없이 단색 대화상자 사용
             dialogImage.color = new Color(0.07f, 0.08f, 0.12f, 0.98f); // Game Over 대화상자 배경 색상 적용
-            CreateText("GameOverTitle", dialog, "GAME OVER", font, 64, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, 100f), new Vector2(680f, 100f)); // Game Over 제목 생성
-            CreateText("GameOverGuide", dialog, "Press R / Gamepad A or click RETRY", font, 24, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(0f, 10f), new Vector2(680f, 60f)); // Retry 입력 안내 생성
+            CreateText("GameOverTitle", dialog, "게임 오버", font, 64, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, 100f), new Vector2(680f, 100f)); // Game Over 제목 생성
+            CreateText("GameOverGuide", dialog, "R / 게임패드 A 또는 재도전 버튼을 누르세요", font, 24, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(0f, 10f), new Vector2(680f, 60f)); // Retry 입력 안내 생성
             retryButton = CreateRetryButton(dialog, font); // 중앙 Retry 버튼 생성
         }
 
@@ -129,7 +129,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             Button button = buttonRect.gameObject.AddComponent<Button>(); // Retry 버튼 상호작용 컴포넌트 추가
             button.targetGraphic = buttonImage; // Retry 버튼 시각 대상 이미지 연결
             button.interactable = true; // Retry 버튼 입력 활성화
-            Text label = CreateText("Label", buttonRect, "RETRY", font, 30, FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero); // Retry 버튼 글자 생성
+            Text label = CreateText("Label", buttonRect, "재도전", font, 30, FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero); // Retry 버튼 글자 생성
             RectTransform labelRect = label.rectTransform; // Retry 버튼 글자 RectTransform 가져오기
             labelRect.anchorMin = Vector2.zero; // Retry 글자 왼쪽 아래 Stretch 앵커 설정
             labelRect.anchorMax = Vector2.one; // Retry 글자 오른쪽 위 Stretch 앵커 설정

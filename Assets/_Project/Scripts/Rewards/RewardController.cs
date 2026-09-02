@@ -3,6 +3,7 @@ using System.Collections.Generic; // 보상 후보 목록 기능 사용
 using ProjectQ.Cards; // 카드 덱과 카드 사용 기능 사용
 using ProjectQ.Combat; // 전투 아레나 상태 기능 사용
 using ProjectQ.Player; // 플레이어 상태와 조작 기능 사용
+using ProjectQ.Relics; // 유물 보유와 보상 적용 기능 사용
 using ProjectQ.UI; // 보상 HUD 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 
@@ -15,6 +16,7 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
         [SerializeField] private RewardHUDController hud; // 전투 보상 선택 HUD 참조
         [SerializeField] private RunDeck runDeck; // 카드 보상 추가 대상 회차 덱 참조
         [SerializeField] private RunResources runResources; // 골드 보상 적용 대상 회차 자원 참조
+        [SerializeField] private RelicInventory relicInventory; // 유물 보상 적용 대상 회차 유물 인벤토리 참조
         [SerializeField] private PlayerStats playerStats; // 즉시 회복 보상 적용 대상 참조
         [SerializeField] private CardUseController cardUseController; // 보상 선택 중 카드 사용 차단 참조
         [SerializeField] private PlayerMovement playerMovement; // 보상 선택 중 이동 차단 참조
@@ -29,13 +31,19 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
         public bool RewardActive => rewardActive; // 현재 보상 선택 진행 상태 반환
         public IReadOnlyList<RewardData> CurrentChoices => currentChoices; // 현재 보상 후보 읽기 전용 반환
 
-        public void Configure(ArenaController arenaController, RewardGenerator rewardGenerator, RewardHUDController rewardHud, RunDeck deck, RunResources resources, PlayerStats stats, CardUseController useController, PlayerMovement movement, PlayerDodge dodge, Rigidbody2D body) // 에디터 자동 구성용 보상 시스템 참조 설정 메서드
+        public void Configure(ArenaController arenaController, RewardGenerator rewardGenerator, RewardHUDController rewardHud, RunDeck deck, RunResources resources, PlayerStats stats, CardUseController useController, PlayerMovement movement, PlayerDodge dodge, Rigidbody2D body) // 11일차 기존 보상 시스템 설정 호환 메서드
+        {
+            Configure(arenaController, rewardGenerator, rewardHud, deck, resources, null, stats, useController, movement, dodge, body); // 유물 인벤토리 없이 기존 보상 설정을 12일차 확장 설정으로 연결
+        }
+
+        public void Configure(ArenaController arenaController, RewardGenerator rewardGenerator, RewardHUDController rewardHud, RunDeck deck, RunResources resources, RelicInventory relics, PlayerStats stats, CardUseController useController, PlayerMovement movement, PlayerDodge dodge, Rigidbody2D body) // 12일차 유물 포함 보상 시스템 참조 설정 메서드
         {
             arena = arenaController; // 전투 아레나 참조 저장
             generator = rewardGenerator; // 보상 생성기 참조 저장
             hud = rewardHud; // 보상 HUD 참조 저장
             runDeck = deck; // 회차 덱 참조 저장
             runResources = resources; // 회차 골드 참조 저장
+            relicInventory = relics; // 회차 유물 인벤토리 참조 저장
             playerStats = stats; // 플레이어 상태 참조 저장
             cardUseController = useController; // 카드 사용 참조 저장
             playerMovement = movement; // 플레이어 이동 참조 저장
@@ -110,7 +118,7 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
             }
 
             currentChoices.Clear(); // 이전 전투 보상 후보 초기화
-            currentChoices.AddRange(generator.GenerateChoices(3, runDeck, playerStats)); // 현재 덱과 플레이어 상태에서 최대 3개 보상 후보 생성
+            currentChoices.AddRange(generator.GenerateChoices(3, runDeck, playerStats, relicInventory)); // 현재 덱과 플레이어와 유물 상태에서 최대 3개 보상 후보 생성
             if (currentChoices.Count == 0) // 유효 보상 후보 생성 여부 확인
             {
                 if (arena != null) // 전투 아레나 참조 존재 여부 확인
@@ -165,7 +173,7 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
                     playerStats.Heal(reward.HealAmount); // 플레이어 체력 즉시 회복
                     return true; // 회복 보상 적용 성공 반환
                 case RewardType.Relic: // 유물 보상 적용 처리
-                    return false; // 12일차 유물 시스템 연결 전까지 선택 불가 반환
+                    return relicInventory != null && relicInventory.TryAddRelic(reward.RelicData); // 동일 유물 중복 검사를 거쳐 현재 회차 유물 인벤토리에 추가
                 default: // 알 수 없는 보상 유형 처리
                     return false; // 알 수 없는 보상 적용 실패 반환
             }

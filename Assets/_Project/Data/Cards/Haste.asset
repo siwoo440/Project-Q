@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Haste
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_haste
-  displayName: Haste
-  description: Move speed +25% for 5 sec
+  displayName: "\uAC00\uC18D"
+  description: "5\uCD08 \uB3D9\uC548 \uC774\uB3D9 \uC18D\uB3C4 +25%"
   rarity: 0
   type: 2
   mpCost: 10

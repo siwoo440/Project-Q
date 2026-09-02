@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: QuickShot
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_quick_shot
-  displayName: Quick Shot
-  description: "\uBE60\uB978 \uAE30\uBCF8 \uD22C\uC0AC\uCCB4\uB97C \uBC1C\uC0AC\uD55C\uB2E4."
+  displayName: "\uC18D\uC0AC\uD0C4"
+  description: "\uBE60\uB978 \uAE30\uBCF8 \uD22C\uC0AC\uCCB4\uB97C \uBC1C\uC0AC\uD569\uB2C8\uB2E4."
   rarity: 0
   type: 0
   mpCost: 6
   cooldown: 0.45
-  upgradeValue: 0
+  upgradeValue: 3
   effect: {fileID: 11400000, guid: 9b8957147f4379245b61d9db2ad9f89c, type: 2}

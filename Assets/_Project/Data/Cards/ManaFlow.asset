@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: ManaFlow
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_mana_flow
-  displayName: Mana Flow
-  description: Restore 5 MP per sec for 6 sec
+  displayName: "\uB9C8\uB098 \uC21C\uD658"
+  description: "6\uCD08 \uB3D9\uC548 \uCD08\uB2F9 MP +5 \uD68C\uBCF5"
   rarity: 2
   type: 2
   mpCost: 14

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestShot
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_test_shot
-  displayName: Test Shot
+  displayName: "\uC2DC\uD5D8 \uC0AC\uACA9"
   description: "9\uC77C\uCC28 \uB371 \uC21C\uD658 \uD14C\uC2A4\uD2B8\uC6A9 \uC6D0\uAC70\uB9AC
     \uACF5\uACA9 \uCE74\uB4DC"
   rarity: 1

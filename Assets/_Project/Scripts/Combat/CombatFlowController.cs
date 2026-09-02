@@ -136,7 +136,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
             if (runDeck != null) // 카드 덱 존재 여부 확인
             {
-                runDeck.InitializeDeck(); // Draw Discard Active Slot과 쿨타임 초기화
+                runDeck.ResetCombatStatePreserveGrowth(); // 획득 카드와 강화 단계는 유지하고 Draw Discard Active Slot과 쿨타임만 초기화
             }
 
             SetPlayerControlEnabled(true); // 플레이어 조작 재활성화

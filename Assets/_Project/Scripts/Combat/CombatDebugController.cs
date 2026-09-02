@@ -1,5 +1,6 @@
 using ProjectQ.Enemies; // 적 시스템 기능 사용
 using ProjectQ.Player; // 플레이어 전투 상태 기능 사용
+using ProjectQ.UI; // 한글 UI 폰트 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 using UnityEngine.InputSystem; // Unity Input System 기능 사용
 
@@ -72,14 +73,15 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
         private void OnGUI() // 전투 상태 화면 표시 메서드
         {
+            GUI.skin.font = KoreanUIFontProvider.GetFont(18); // 전투 디버그 GUI에 한글 표시 가능 폰트 적용
             GUILayout.BeginArea(new Rect(20f, 430f, 520f, 200f), GUI.skin.box); // 전투 디버그 패널 시작
-            GUILayout.Label(enemySpawner != null ? "Project Q - Day 6 Enemy Combat Debug" : "Project Q - Day 5 Combat Debug"); // 현재 전투 디버그 제목 표시
-            GUILayout.Label($"HP : {ReadCurrentHealth():F0} / {ReadMaxHealth():F0}"); // 플레이어 체력 상태 표시
-            GUILayout.Label($"MP : {ReadCurrentMana():F0} / {ReadMaxMana():F0}"); // 플레이어 마나 상태 표시
-            GUILayout.Label($"Shield : {ReadCurrentShield():F0} / {ReadMaxShield():F0}"); // 플레이어 실드 상태 표시
-            GUILayout.Label($"Invincible : {(playerHitbox != null && !playerHitbox.CanReceiveDamage)}"); // 플레이어 무적 상태 표시
-            GUILayout.Label(enemySpawner != null ? $"Active Enemies : {enemySpawner.ActiveEnemyCount}" : $"Dummy HP : {ReadDummyHealth():F0} / {ReadDummyMaxHealth():F0}"); // 현재 적 또는 테스트 더미 상태 표시
-            GUILayout.Label("Fire: Left Click / Gamepad X | H Heal | J Spend MP | K Restore MP | L Shield | R Reset"); // 전투 테스트 조작 표시
+            GUILayout.Label(enemySpawner != null ? "프로젝트 Q - 6일차 적 전투 디버그" : "프로젝트 Q - 5일차 전투 디버그"); // 현재 전투 디버그 제목 표시
+            GUILayout.Label($"체력 : {ReadCurrentHealth():F0} / {ReadMaxHealth():F0}"); // 플레이어 체력 상태 표시
+            GUILayout.Label($"마나 : {ReadCurrentMana():F0} / {ReadMaxMana():F0}"); // 플레이어 마나 상태 표시
+            GUILayout.Label($"실드 : {ReadCurrentShield():F0} / {ReadMaxShield():F0}"); // 플레이어 실드 상태 표시
+            GUILayout.Label($"무적 : {(playerHitbox != null && !playerHitbox.CanReceiveDamage ? "활성" : "비활성")}"); // 플레이어 무적 상태 표시
+            GUILayout.Label(enemySpawner != null ? $"생존 적 : {enemySpawner.ActiveEnemyCount} / {enemySpawner.SpawnPointCount}" : $"더미 체력 : {ReadDummyHealth():F0} / {ReadDummyMaxHealth():F0}"); // 현재 적 또는 테스트 더미 상태 표시
+            GUILayout.Label("발사: 좌클릭 / 게임패드 X | H 회복 | J MP 소비 | K MP 회복 | L 실드 | R 초기화"); // 전투 테스트 조작 표시
             GUILayout.EndArea(); // 전투 디버그 패널 종료
         }
 

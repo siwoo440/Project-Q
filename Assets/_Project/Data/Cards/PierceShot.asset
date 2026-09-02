@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: PierceShot
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_pierce_shot
-  displayName: Pierce Shot
-  description: "\uC801\uC744 \uCD94\uAC00\uB85C \uB450 \uBC88 \uAD00\uD1B5\uD55C\uB2E4."
+  displayName: "\uAD00\uD1B5\uD0C4"
+  description: "\uC801\uC744 \uCD94\uAC00\uB85C \uB450 \uBC88 \uAD00\uD1B5\uD569\uB2C8\uB2E4."
   rarity: 1
   type: 0
   mpCost: 12
   cooldown: 1
-  upgradeValue: 0
+  upgradeValue: 3
   effect: {fileID: 11400000, guid: 2a5fa339817e3d74ab1e2578be0c790e, type: 2}

@@ -50,10 +50,10 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             ProjectileCardEffect blastEffect = CreateEffect("Effect_BlastShot.asset", ProjectileCardStyle.Explosive, projectilePrefab, 15f, 14f, 3.5f, 1.4f, 0, 2.6f, 20f, 0f, 0f); // 폭발 공격 효과 생성
             ProjectileCardEffect homingEffect = CreateEffect("Effect_HomingShot.asset", ProjectileCardStyle.Homing, projectilePrefab, 13f, 17f, 4f, 1.4f, 0, 0f, 0f, 240f, 12f); // 유도 공격 효과 생성
 
-            CardData quick = CreateCard("QuickShot.asset", "card_quick_shot", "Quick Shot", "빠른 기본 투사체를 발사한다.", CardRarity.Common, 6, 0.45f, quickEffect); // Quick Shot 카드 생성
-            CardData pierce = CreateCard("PierceShot.asset", "card_pierce_shot", "Pierce Shot", "적을 추가로 두 번 관통한다.", CardRarity.Uncommon, 12, 1.0f, pierceEffect); // Pierce Shot 카드 생성
-            CardData blast = CreateCard("BlastShot.asset", "card_blast_shot", "Blast Shot", "적중 지점 주변에 폭발 피해를 준다.", CardRarity.Rare, 18, 1.6f, blastEffect); // Blast Shot 카드 생성
-            CardData homing = CreateCard("HomingShot.asset", "card_homing_shot", "Homing Shot", "가장 가까운 적을 추적한다.", CardRarity.Rare, 14, 1.2f, homingEffect); // Homing Shot 카드 생성
+            CardData quick = CreateCard("QuickShot.asset", "card_quick_shot", "속사탄", "빠른 기본 투사체를 발사합니다.", CardRarity.Common, 6, 0.45f, quickEffect); // Quick Shot 카드 생성
+            CardData pierce = CreateCard("PierceShot.asset", "card_pierce_shot", "관통탄", "적을 추가로 두 번 관통합니다.", CardRarity.Uncommon, 12, 1.0f, pierceEffect); // Pierce Shot 카드 생성
+            CardData blast = CreateCard("BlastShot.asset", "card_blast_shot", "폭발탄", "적중 지점 주변에 폭발 피해를 줍니다.", CardRarity.Rare, 18, 1.6f, blastEffect); // Blast Shot 카드 생성
+            CardData homing = CreateCard("HomingShot.asset", "card_homing_shot", "유도탄", "가장 가까운 적을 추적합니다.", CardRarity.Rare, 14, 1.2f, homingEffect); // Homing Shot 카드 생성
 
             EditorSceneManager.SaveOpenScenes(); // 열린 씬 저장
             string previousScenePath = SceneManager.GetActiveScene().path; // 기존 씬 경로 저장
@@ -220,10 +220,10 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             Image panelImage = panel.gameObject.AddComponent<Image>(); // 패널 배경 추가
             panelImage.sprite = null; // UISprite 미사용
             panelImage.color = new Color(0.018f, 0.026f, 0.052f, 0.95f); // 딥 네이비 배경 적용
-            Text selectionText = CreateText("SelectionText", panel, "SELECTED : Q   |   Q / E SELECT   |   LEFT CLICK USE", font, 20, new Vector2(24f, -14f), new Vector2(560f, 34f)); // 선택 안내 생성
-            Text drawText = CreateText("DrawCount", panel, "DRAW 0", font, 17, new Vector2(590f, -14f), new Vector2(90f, 34f)); // Draw 수 표시
-            Text discardText = CreateText("DiscardCount", panel, "DISCARD 0", font, 17, new Vector2(685f, -14f), new Vector2(110f, 34f)); // Discard 수 표시
-            Text totalText = CreateText("DeckCount", panel, "DECK 0", font, 17, new Vector2(800f, -14f), new Vector2(90f, 34f)); // Deck 수 표시
+            Text selectionText = CreateText("SelectionText", panel, "선택 : Q   |   Q / E 선택   |   좌클릭 사용", font, 20, new Vector2(24f, -14f), new Vector2(560f, 34f)); // 선택 안내 생성
+            Text drawText = CreateText("DrawCount", panel, "뽑을 카드 0", font, 17, new Vector2(590f, -14f), new Vector2(90f, 34f)); // Draw 수 표시
+            Text discardText = CreateText("DiscardCount", panel, "버린 카드 0", font, 17, new Vector2(685f, -14f), new Vector2(110f, 34f)); // Discard 수 표시
+            Text totalText = CreateText("DeckCount", panel, "덱 0", font, 17, new Vector2(800f, -14f), new Vector2(90f, 34f)); // Deck 수 표시
             Text[] slotTexts = new Text[2]; // 두 슬롯 텍스트 배열
             Image[] slotImages = new Image[2]; // 두 슬롯 배경 배열
 
@@ -235,7 +235,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
                 Image slotImage = slot.gameObject.AddComponent<Image>(); // 슬롯 배경 추가
                 slotImage.sprite = null; // UISprite 미사용
                 slotImage.color = new Color(0.16f, 0.11f, 0.12f, 0.96f); // 기본 카드 색상 적용
-                Text slotText = CreateText("Content", slot, $"{key}\nEMPTY", font, 22, new Vector2(18f, -10f), new Vector2(380f, 124f)); // 카드 내용 텍스트 생성
+                Text slotText = CreateText("Content", slot, $"{key}\n비어 있음", font, 22, new Vector2(18f, -10f), new Vector2(380f, 124f)); // 카드 내용 텍스트 생성
                 slotTexts[index] = slotText; // 슬롯 텍스트 저장
                 slotImages[index] = slotImage; // 슬롯 배경 저장
             }

@@ -197,7 +197,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: DG
+  m_Text: "\uD68C\uD53C"
 --- !u!1 &42167045
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,6 +310,7 @@ MonoBehaviour:
   hud: {fileID: 1684522678}
   runDeck: {fileID: 866756720}
   runResources: {fileID: 147592843}
+  relicInventory: {fileID: 243129299}
   playerStats: {fileID: 1087613229}
   cardUseController: {fileID: 1087613230}
   playerMovement: {fileID: 1087613225}
@@ -336,6 +337,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 43a0a8b5969fa574fa22427d25726a03, type: 2}
   - {fileID: 11400000, guid: 01737a99b62e1a541a6892d3f13e5510, type: 2}
   - {fileID: 11400000, guid: 84def83483c0ebc4cb4eb1d3b6aba89d, type: 2}
+  - {fileID: 11400000, guid: 13fcb1a3ca71d5946b2202ecb14ede98, type: 2}
+  - {fileID: 11400000, guid: df2818ad8e1cdde40a12547fe2ad1b8d, type: 2}
+  - {fileID: 11400000, guid: 63a983c5a6ee93e49a44351cc58835a0, type: 2}
+  - {fileID: 11400000, guid: 241a4167f2c70a54b802e354f598da32, type: 2}
   randomSeed: 20260902
 --- !u!114 &147592843
 MonoBehaviour:
@@ -1289,7 +1294,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: RETRY
+  m_Text: "\uC7AC\uB3C4\uC804"
 --- !u!222 &191623093
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1467,7 +1472,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: HP
+  m_Text: "\uCCB4\uB825"
 --- !u!1 &239417702
 GameObject:
   m_ObjectHideFlags: 0
@@ -1547,6 +1552,66 @@ RectTransform:
   m_AnchoredPosition: {x: 18, y: -18}
   m_SizeDelta: {x: 294, y: 334}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &243129298
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 243129301}
+  - component: {fileID: 243129300}
+  - component: {fileID: 243129299}
+  m_Layer: 0
+  m_Name: RelicSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &243129299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243129298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a97aa5da8ae43239d9bd932cc535ef5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Relics.RelicInventory
+  effectController: {fileID: 243129300}
+--- !u!114 &243129300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243129298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f53bfebcd2646a29017574074b180e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Relics.RelicEffectController
+  playerStats: {fileID: 1087613229}
+  playerBuffs: {fileID: 1087613231}
+--- !u!4 &243129301
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243129298}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &251383797
 GameObject:
   m_ObjectHideFlags: 0
@@ -1617,7 +1682,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Press R / Gamepad A or click RETRY
+  m_Text: "R / \uAC8C\uC784\uD328\uB4DC A \uB610\uB294 \uC7AC\uB3C4\uC804 \uBC84\uD2BC\uC744
+    \uB204\uB974\uC138\uC694"
 --- !u!222 &251383800
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1775,7 +1841,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SH
+  m_Text: "\uC2E4\uB4DC"
 --- !u!222 &327914131
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2059,9 +2125,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Q
-
-    EMPTY'
+  m_Text: "Q\n\uBE44\uC5B4 \uC788\uC74C"
 --- !u!222 &374960776
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2069,6 +2133,164 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 374960773}
+  m_CullTransparentMesh: 1
+--- !u!1 &377216027
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 377216028}
+  - component: {fileID: 377216030}
+  - component: {fileID: 377216029}
+  m_Layer: 0
+  m_Name: GrowthPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &377216028
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377216027}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 458930439}
+  - {fileID: 2073648877}
+  - {fileID: 1346072278}
+  - {fileID: 1157180093}
+  m_Father: {fileID: 1684522677}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -24, y: -24}
+  m_SizeDelta: {x: 900, y: 650}
+  m_Pivot: {x: 1, y: 1}
+--- !u!114 &377216029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377216027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.012, g: 0.018, b: 0.04, a: 0.97}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &377216030
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377216027}
+  m_CullTransparentMesh: 1
+--- !u!1 &458930438
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 458930439}
+  - component: {fileID: 458930441}
+  - component: {fileID: 458930440}
+  m_Layer: 0
+  m_Name: GrowthTitle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &458930439
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458930438}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 377216028}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 24, y: -18}
+  m_SizeDelta: {x: 850, y: 44}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &458930440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458930438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.82, g: 0.92, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 28
+    m_FontStyle: 1
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 3
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: "\uD68C\uCC28 \uC131\uC7A5  /  \uCE74\uB4DC \xB7 \uC720\uBB3C"
+--- !u!222 &458930441
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458930438}
   m_CullTransparentMesh: 1
 --- !u!114 &502978786
 MonoBehaviour:
@@ -2451,7 +2673,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: MP
+  m_Text: "\uB9C8\uB098"
 --- !u!1 &697113741
 GameObject:
   m_ObjectHideFlags: 0
@@ -2766,7 +2988,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: GAME OVER
+  m_Text: "\uAC8C\uC784 \uC624\uBC84"
 --- !u!222 &719727982
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3087,7 +3309,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'SELECTED : Q   |   Q / E SELECT   |   LEFT CLICK USE'
+  m_Text: "\uC120\uD0DD : Q   |   Q / E \uC120\uD0DD   |   \uC88C\uD074\uB9AD \uC0AC\uC6A9"
 --- !u!222 &785194414
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3344,7 +3566,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: HP
+  m_Text: "\uCCB4\uB825"
 --- !u!222 &951566395
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3646,7 +3868,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: DISCARD 0
+  m_Text: "\uBC84\uB9B0 \uCE74\uB4DC 0"
 --- !u!222 &1052028428
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3849,6 +4071,7 @@ MonoBehaviour:
   maxMana: 100
   maxShield: 100
   startingShield: 25
+  baseManaRegenPerSecond: 5
 --- !u!114 &1087613230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3878,6 +4101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Player.PlayerBuffController
   playerStats: {fileID: 1087613229}
   playerMovement: {fileID: 1087613225}
+  persistentAttackDamageBonus: 0
 --- !u!1 &1117219555
 GameObject:
   m_ObjectHideFlags: 0
@@ -3935,6 +4159,86 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1157180092
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1157180093}
+  - component: {fileID: 1157180095}
+  - component: {fileID: 1157180094}
+  m_Layer: 0
+  m_Name: GrowthGuideText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1157180093
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1157180092}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 377216028}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 24, y: -580}
+  m_SizeDelta: {x: 850, y: 52}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &1157180094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1157180092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.65, g: 0.78, b: 0.92, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 17
+    m_FontStyle: 1
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 3
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: "B \uB2EB\uAE30  |  \u2191\u2193 \uC120\uD0DD  |  U \uAC15\uD654  |  Delete
+    \uC81C\uAC70"
+--- !u!222 &1157180095
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1157180092}
+  m_CullTransparentMesh: 1
 --- !u!114 &1168867168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4019,7 +4323,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: CLICK A REWARD  /  KEY 1 2 3
+  m_Text: "\uBCF4\uC0C1\uC744 \uD074\uB9AD\uD558\uAC70\uB098 1\xB72\xB73 \uD0A4\uB85C
+    \uC120\uD0DD"
 --- !u!222 &1173056100
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4295,7 +4600,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: COMBAT CLEAR  /  CHOOSE ONE REWARD
+  m_Text: "\uC804\uD22C \uD074\uB9AC\uC5B4  /  \uBCF4\uC0C1 \uD558\uB098\uB97C \uC120\uD0DD\uD558\uC138\uC694"
 --- !u!222 &1251178360
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4388,7 +4693,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: MP
+  m_Text: "\uB9C8\uB098"
 --- !u!222 &1297315546
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4448,7 +4753,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: COMBAT CLEAR
+  m_Text: "\uC804\uD22C \uD074\uB9AC\uC5B4"
 --- !u!222 &1317258032
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4570,6 +4875,85 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1338904385}
+  m_CullTransparentMesh: 1
+--- !u!1 &1346072277
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1346072278}
+  - component: {fileID: 1346072280}
+  - component: {fileID: 1346072279}
+  m_Layer: 0
+  m_Name: GrowthRelicsText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1346072278
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1346072277}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 377216028}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 550, y: -76}
+  m_SizeDelta: {x: 326, y: 490}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &1346072279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1346072277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 17
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: "\uC720\uBB3C"
+--- !u!222 &1346072280
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1346072277}
   m_CullTransparentMesh: 1
 --- !u!1 &1347900943
 GameObject:
@@ -4940,7 +5324,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'COMBAT : IDLE'
+  m_Text: "\uC804\uD22C : \uB300\uAE30"
 --- !u!222 &1433287885
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5038,7 +5422,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: DECK 0
+  m_Text: "\uB371 0"
 --- !u!222 &1510124014
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5125,7 +5509,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: ENEMIES 0 / 0
+  m_Text: "\uC801 0 / 0"
 --- !u!1 &1530858829
 GameObject:
   m_ObjectHideFlags: 0
@@ -5348,7 +5732,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: GAME SCENE
+  m_Text: "\uAC8C\uC784 \uD654\uBA74"
 --- !u!222 &1618512891
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5534,7 +5918,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: DRAW 0
+  m_Text: "\uBF51\uC744 \uCE74\uB4DC 0"
 --- !u!222 &1671704067
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5556,6 +5940,8 @@ GameObject:
   - component: {fileID: 1684522675}
   - component: {fileID: 1684522674}
   - component: {fileID: 1684522678}
+  - component: {fileID: 1684522679}
+  - component: {fileID: 1684522680}
   m_Layer: 0
   m_Name: CombatHUDCanvas
   m_TagString: Untagged
@@ -5654,6 +6040,7 @@ RectTransform:
   - {fileID: 156508198}
   - {fileID: 1641002089}
   - {fileID: 1338904386}
+  - {fileID: 377216028}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5685,6 +6072,37 @@ MonoBehaviour:
   - {fileID: 579027194}
   goldText: {fileID: 1814810408}
   runResources: {fileID: 147592843}
+--- !u!114 &1684522679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684522673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e56b1de69394702b3451059f22ae65a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.UI.GrowthDebugHUD
+  runDeck: {fileID: 866756720}
+  relicInventory: {fileID: 243129299}
+  panel: {fileID: 377216027}
+  cardsText: {fileID: 2073648878}
+  relicsText: {fileID: 1346072279}
+  guideText: {fileID: 1157180094}
+--- !u!114 &1684522680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684522673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 125e7ba711fa40609aaa14d6fced39e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.UI.KoreanUIFontApplier
+  dynamicFontSize: 24
 --- !u!114 &1701395166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5916,7 +6334,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: RUN GOLD  0
+  m_Text: "\uBCF4\uC720 \uACE8\uB4DC  0"
 --- !u!222 &1814810409
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6268,7 +6686,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SH
+  m_Text: "\uC2E4\uB4DC"
 --- !u!1 &1953701981
 GameObject:
   m_ObjectHideFlags: 0
@@ -6512,7 +6930,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: DG
+  m_Text: "\uD68C\uD53C"
 --- !u!222 &1956209602
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7017,9 +7435,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'E
-
-    EMPTY'
+  m_Text: "E\n\uBE44\uC5B4 \uC788\uC74C"
 --- !u!222 &2021872558
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7098,7 +7514,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: PROJECT Q / COMBAT
+  m_Text: "\uD504\uB85C\uC81D\uD2B8 Q / \uC804\uD22C"
 --- !u!222 &2025294869
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7106,6 +7522,85 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2025294866}
+  m_CullTransparentMesh: 1
+--- !u!1 &2073648876
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2073648877}
+  - component: {fileID: 2073648879}
+  - component: {fileID: 2073648878}
+  m_Layer: 0
+  m_Name: GrowthCardsText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2073648877
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073648876}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 377216028}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 24, y: -76}
+  m_SizeDelta: {x: 510, y: 490}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &2073648878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073648876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 17
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: "\uCE74\uB4DC"
+--- !u!222 &2073648879
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073648876}
   m_CullTransparentMesh: 1
 --- !u!1 &2118217590
 GameObject:
@@ -7119,6 +7614,7 @@ GameObject:
   - component: {fileID: 2118217593}
   - component: {fileID: 2118217592}
   - component: {fileID: 2118217591}
+  - component: {fileID: 2118217595}
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
@@ -7210,6 +7706,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &2118217595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118217590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 125e7ba711fa40609aaa14d6fced39e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.UI.KoreanUIFontApplier
+  dynamicFontSize: 24
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -7229,3 +7738,4 @@ SceneRoots:
   - {fileID: 1117219557}
   - {fileID: 866756721}
   - {fileID: 147592844}
+  - {fileID: 243129301}

@@ -13,13 +13,14 @@ MonoBehaviour:
   m_Name: Reward_Recovery
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rewards.RewardData
   id: reward_recovery
-  displayName: Recovery
-  description: Add Recovery to this run deck.
+  displayName: "\uD68C\uBCF5"
+  description: "\uD604\uC7AC \uD68C\uCC28 \uB371\uC5D0 \uD68C\uBCF5 \uCE74\uB4DC\uB97C
+    \uCD94\uAC00\uD569\uB2C8\uB2E4."
   type: 0
   cardData: {fileID: 11400000, guid: 68aa0dbd9f68a054fbce3146eb9619d0, type: 2}
   goldAmount: 0
   healAmount: 0
-  relicPayload: {fileID: 0}
+  relicData: {fileID: 0}
   rarity: 1
   baseWeight: 1
   allowDuplicateCard: 1

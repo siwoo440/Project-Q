@@ -16,7 +16,9 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
         private const string CardDataFolder = "Assets/_Project/Data/Cards"; // 테스트 카드 데이터 폴더 경로
         private const string EffectDataFolder = "Assets/_Project/Data/Cards/Effects"; // 테스트 카드 효과 폴더 경로
         private const string PlayerSpritePath = "Assets/_Project/Art/Characters/Player_Day09.png"; // 새 플레이어 캐릭터 스프라이트 경로
+        private const string EnemySpritePath = "Assets/_Project/Art/Enemies/Enemy_Day09.png"; // 새 적 비주얼 스프라이트 경로
         private const string AimSpritePath = "Assets/_Project/Art/UI/AimMarker_Day09.png"; // 새 조준 마커 스프라이트 경로
+        private const string EnemyPrefabPath = "Assets/_Project/Prefabs/Enemies/TestEnemy.prefab"; // 테스트 적 프리팹 경로
         private const string SetupEditorPrefKey = "ProjectQ.Day9.Setup.2026-09-02.v1"; // 9일차 자동 적용 기록 키
         private const string Day8EditorPrefKey = "ProjectQ.Day8.Setup.2026-09-02.v1"; // 8일차 자동 적용 기록 키
 
@@ -38,15 +40,16 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
 
             EnsureCardDataFolders(); // 카드 데이터와 효과 폴더 준비
             AssetDatabase.ImportAsset(PlayerSpritePath, ImportAssetOptions.ForceUpdate); // 새 캐릭터 스프라이트 강제 임포트
+            AssetDatabase.ImportAsset(EnemySpritePath, ImportAssetOptions.ForceUpdate); // 새 적 비주얼 스프라이트 강제 임포트
             AssetDatabase.ImportAsset(AimSpritePath, ImportAssetOptions.ForceUpdate); // 새 조준 마커 스프라이트 강제 임포트
             DebugLogCardEffect strikeEffect = CreateOrUpdateEffect("Effect_TestStrike.asset", "Test Strike cycle effect"); // 공격 카드 테스트 효과 생성
             DebugLogCardEffect shotEffect = CreateOrUpdateEffect("Effect_TestShot.asset", "Test Shot cycle effect"); // 원거리 카드 테스트 효과 생성
             DebugLogCardEffect shieldEffect = CreateOrUpdateEffect("Effect_TestShield.asset", "Test Shield cycle effect"); // 방어 카드 테스트 효과 생성
             DebugLogCardEffect utilityEffect = CreateOrUpdateEffect("Effect_TestFocus.asset", "Test Focus cycle effect"); // 보조 카드 테스트 효과 생성
-            CardData strike = CreateOrUpdateCard("TestStrike.asset", "card_test_strike", "Test Strike", "9일차 덱 순환 테스트용 근접 공격 카드", CardRarity.Common, CardType.Attack, 8, 0.8f, 2f, strikeEffect); // Test Strike 카드 데이터 생성
-            CardData shot = CreateOrUpdateCard("TestShot.asset", "card_test_shot", "Test Shot", "9일차 덱 순환 테스트용 원거리 공격 카드", CardRarity.Uncommon, CardType.Attack, 10, 1.0f, 3f, shotEffect); // Test Shot 카드 데이터 생성
-            CardData shield = CreateOrUpdateCard("TestShield.asset", "card_test_shield", "Test Shield", "9일차 덱 순환 테스트용 방어 카드", CardRarity.Rare, CardType.Defense, 6, 1.5f, 5f, shieldEffect); // Test Shield 카드 데이터 생성
-            CardData focus = CreateOrUpdateCard("TestFocus.asset", "card_test_focus", "Test Focus", "9일차 덱 순환 테스트용 보조 카드", CardRarity.Epic, CardType.Utility, 4, 2.0f, 1f, utilityEffect); // Test Focus 카드 데이터 생성
+            CardData strike = CreateOrUpdateCard("TestStrike.asset", "card_test_strike", "시험 타격", "9일차 덱 순환 테스트용 근접 공격 카드", CardRarity.Common, CardType.Attack, 8, 0.8f, 2f, strikeEffect); // Test Strike 카드 데이터 생성
+            CardData shot = CreateOrUpdateCard("TestShot.asset", "card_test_shot", "시험 사격", "9일차 덱 순환 테스트용 원거리 공격 카드", CardRarity.Uncommon, CardType.Attack, 10, 1.0f, 3f, shotEffect); // Test Shot 카드 데이터 생성
+            CardData shield = CreateOrUpdateCard("TestShield.asset", "card_test_shield", "시험 방벽", "9일차 덱 순환 테스트용 방어 카드", CardRarity.Rare, CardType.Defense, 6, 1.5f, 5f, shieldEffect); // Test Shield 카드 데이터 생성
+            CardData focus = CreateOrUpdateCard("TestFocus.asset", "card_test_focus", "시험 집중", "9일차 덱 순환 테스트용 보조 카드", CardRarity.Epic, CardType.Utility, 4, 2.0f, 1f, utilityEffect); // Test Focus 카드 데이터 생성
 
             EditorSceneManager.SaveOpenScenes(); // 현재 열린 씬 변경 사항 저장
             string previousScenePath = SceneManager.GetActiveScene().path; // 현재 작업 씬 경로 저장
@@ -61,8 +64,10 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             }
 
             Sprite playerSprite = AssetDatabase.LoadAssetAtPath<Sprite>(PlayerSpritePath); // 새 플레이어 캐릭터 Sprite 에셋 불러오기
+            Sprite enemySprite = AssetDatabase.LoadAssetAtPath<Sprite>(EnemySpritePath); // 새 적 비주얼 Sprite 에셋 불러오기
             Sprite aimSprite = AssetDatabase.LoadAssetAtPath<Sprite>(AimSpritePath); // 새 조준 마커 Sprite 에셋 불러오기
             ApplyPlayerVisual(playerObject, playerSprite, aimSprite); // 플레이어와 조준 표시 비주얼 교체
+            ApplyEnemyVisuals(enemySprite); // 적 비주얼과 크기를 플레이어 기준으로 통일
             RestyleExistingUi(hudCanvasObject.transform); // 기존 UISprite 기반 전투 UI를 무스프라이트 UI로 변경
             CreatePlayerPortrait(hudCanvasObject.transform, playerSprite); // 새 캐릭터 이미지를 전투 HUD에 표시
             RunDeck deck = CreateCardSystem(strike, shot, shield, focus); // 테스트 시작 덱과 순환 시스템 생성
@@ -157,6 +162,60 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             deck.Configure(startingCards, 4, true, 20260902); // 6장 시작 덱과 활성 슬롯 4칸 설정
             debug.Configure(deck); // 테스트 카드 입력에 회차 덱 연결
             return deck; // 구성된 회차 카드 덱 반환
+        }
+
+        private static void ApplyEnemyVisuals(Sprite enemySprite) // 적 비주얼과 크기 통일 메서드
+        {
+            if (enemySprite == null) // 새 적 비주얼 스프라이트 사용 가능 여부 확인
+            {
+                return; // 적 비주얼 통일 처리 생략
+            }
+
+            UpdateEnemyPrefabVisual(enemySprite); // 테스트 적 프리팹 비주얼 먼저 갱신
+            ProjectQ.Enemies.EnemyController[] sceneEnemies = Object.FindObjectsByType<ProjectQ.Enemies.EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None); // 현재 씬 적 오브젝트 전체 검색
+            foreach (ProjectQ.Enemies.EnemyController enemy in sceneEnemies) // 현재 씬 적 오브젝트 전체 순회
+            {
+                if (enemy == null) // 유효 적 오브젝트 여부 확인
+                {
+                    continue; // 누락 적 처리 생략
+                }
+
+                SpriteRenderer renderer = enemy.GetComponent<SpriteRenderer>(); // 현재 씬 적 SpriteRenderer 검색
+                if (renderer != null) // 현재 씬 적 SpriteRenderer 존재 여부 확인
+                {
+                    renderer.sprite = enemySprite; // 현재 씬 적 스프라이트를 새 적 비주얼로 교체
+                    renderer.color = Color.white; // 현재 씬 적 원본 스프라이트 색상 유지
+                    renderer.sortingOrder = 2; // 현재 씬 적 표시 순서 유지
+                }
+
+                enemy.transform.localScale = new Vector3(1.1f, 1.1f, 1f); // 현재 씬 적 크기를 플레이어와 같은 체감 크기로 통일
+            }
+        }
+
+        private static void UpdateEnemyPrefabVisual(Sprite enemySprite) // 테스트 적 프리팹 비주얼 갱신 메서드
+        {
+            if (!File.Exists(EnemyPrefabPath)) // 테스트 적 프리팹 파일 존재 여부 확인
+            {
+                return; // 테스트 적 프리팹 갱신 처리 생략
+            }
+
+            GameObject prefabRoot = PrefabUtility.LoadPrefabContents(EnemyPrefabPath); // 테스트 적 프리팹 편집용 루트 로드
+            if (prefabRoot == null) // 테스트 적 프리팹 로드 성공 여부 확인
+            {
+                return; // 테스트 적 프리팹 갱신 처리 생략
+            }
+
+            SpriteRenderer renderer = prefabRoot.GetComponent<SpriteRenderer>(); // 테스트 적 프리팹 SpriteRenderer 검색
+            if (renderer != null) // 테스트 적 프리팹 SpriteRenderer 존재 여부 확인
+            {
+                renderer.sprite = enemySprite; // 테스트 적 프리팹 스프라이트를 새 적 비주얼로 교체
+                renderer.color = Color.white; // 테스트 적 프리팹 원본 스프라이트 색상 유지
+                renderer.sortingOrder = 2; // 테스트 적 프리팹 표시 순서 유지
+            }
+
+            prefabRoot.transform.localScale = new Vector3(1.1f, 1.1f, 1f); // 테스트 적 프리팹 크기를 플레이어와 같은 체감 크기로 통일
+            PrefabUtility.SaveAsPrefabAsset(prefabRoot, EnemyPrefabPath); // 테스트 적 프리팹 변경 사항 저장
+            PrefabUtility.UnloadPrefabContents(prefabRoot); // 테스트 적 프리팹 편집 루트 언로드
         }
 
         private static void ApplyPlayerVisual(GameObject playerObject, Sprite playerSprite, Sprite aimSprite) // 플레이어 비주얼 교체 메서드
@@ -273,11 +332,11 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             Image panelImage = panel.gameObject.AddComponent<Image>(); // 카드 덱 패널 배경 Image 추가
             panelImage.sprite = null; // UISprite 없는 단색 카드 덱 배경 설정
             panelImage.color = new Color(0.018f, 0.026f, 0.052f, 0.94f); // 카드 덱 패널 딥 네이비 색상 적용
-            Text title = CreateText("DeckTitle", panel, "ACTIVE CARDS  /  1~4 : CYCLE TEST", font, 22, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(24f, -14f), new Vector2(560f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 카드 덱 HUD 제목 생성
+            Text title = CreateText("DeckTitle", panel, "활성 카드  /  1~4 : 순환 테스트", font, 22, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(24f, -14f), new Vector2(560f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 카드 덱 HUD 제목 생성
             title.color = new Color(0.83f, 0.91f, 1f, 1f); // 카드 덱 제목 밝은 청백색 적용
-            Text drawText = CreateText("DrawCount", panel, "DRAW 0", font, 18, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(740f, -14f), new Vector2(140f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // Draw Pile 수 텍스트 생성
-            Text discardText = CreateText("DiscardCount", panel, "DISCARD 0", font, 18, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(890f, -14f), new Vector2(150f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // Discard Pile 수 텍스트 생성
-            Text totalText = CreateText("DeckCount", panel, "DECK 0", font, 18, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(1050f, -14f), new Vector2(150f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 전체 덱 수 텍스트 생성
+            Text drawText = CreateText("DrawCount", panel, "뽑을 카드 0", font, 18, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(740f, -14f), new Vector2(140f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // Draw Pile 수 텍스트 생성
+            Text discardText = CreateText("DiscardCount", panel, "버린 카드 0", font, 18, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(890f, -14f), new Vector2(150f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // Discard Pile 수 텍스트 생성
+            Text totalText = CreateText("DeckCount", panel, "덱 0", font, 18, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(1050f, -14f), new Vector2(150f, 34f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 전체 덱 수 텍스트 생성
             Text[] slotTexts = new Text[4]; // 카드 슬롯 텍스트 배열 생성
             Image[] slotImages = new Image[4]; // 카드 슬롯 배경 이미지 배열 생성
 
@@ -288,7 +347,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
                 Image slotImage = slot.gameObject.AddComponent<Image>(); // 현재 카드 슬롯 배경 Image 추가
                 slotImage.sprite = null; // UISprite 없는 단색 카드 슬롯 배경 설정
                 slotImage.color = new Color(0.14f, 0.09f, 0.11f, 0.96f); // 카드 슬롯 기본 암적색 적용
-                Text slotText = CreateText("Content", slot, $"{index + 1}\nEMPTY", font, 19, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(14f, -12f), new Vector2(248f, 140f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 카드 슬롯 정보 텍스트 생성
+                Text slotText = CreateText("Content", slot, $"{index + 1}\n비어 있음", font, 19, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(14f, -12f), new Vector2(248f, 140f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 카드 슬롯 정보 텍스트 생성
                 slotText.color = Color.white; // 카드 슬롯 정보 흰색 적용
                 slotTexts[index] = slotText; // 카드 슬롯 텍스트 배열에 저장
                 slotImages[index] = slotImage; // 카드 슬롯 배경 배열에 저장

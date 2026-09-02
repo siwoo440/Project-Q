@@ -1,3 +1,4 @@
+using ProjectQ.UI; // 한글 UI 폰트 기능 사용
 using System.IO; // 파일 시스템 기능 사용
 using ProjectQ.Core; // 프로젝트 런타임 코어 기능 사용
 using UnityEditor; // Unity 에디터 기능 사용
@@ -95,7 +96,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
 
         private static void CreateMainMenuScene() // 메인 메뉴 씬 생성 메서드
         {
-            Scene scene = CreateMenuBaseScene("PROJECT Q"); // 메인 메뉴 기본 UI 씬 생성
+            Scene scene = CreateMenuBaseScene("프로젝트 Q"); // 메인 메뉴 기본 UI 씬 생성
             MenuSceneController controller = CreateMenuController(); // 메뉴 씬 컨트롤러 생성
             CreateButton("게임 시작", new Vector2(0f, -20f), controller.GoToLobby); // 로비 이동 버튼 생성
             CreateButton("종료", new Vector2(0f, -100f), controller.QuitGame); // 게임 종료 버튼 생성
@@ -104,7 +105,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
 
         private static void CreateLobbyScene() // 로비 씬 생성 메서드
         {
-            Scene scene = CreateMenuBaseScene("LOBBY"); // 로비 기본 UI 씬 생성
+            Scene scene = CreateMenuBaseScene("로비"); // 로비 기본 UI 씬 생성
             MenuSceneController controller = CreateMenuController(); // 메뉴 씬 컨트롤러 생성
             CreateButton("게임 시작", new Vector2(0f, -20f), controller.GoToGame); // 게임 씬 이동 버튼 생성
             CreateButton("메인 메뉴", new Vector2(0f, -100f), controller.GoToMainMenu); // 메인 메뉴 이동 버튼 생성
@@ -113,7 +114,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
 
         private static void CreateGameScene(InputActionAsset inputAsset) // 게임 테스트 씬 생성 메서드
         {
-            Scene scene = CreateMenuBaseScene("GAME SCENE"); // 게임 기본 UI 씬 생성
+            Scene scene = CreateMenuBaseScene("게임 화면"); // 게임 기본 UI 씬 생성
             MenuSceneController controller = CreateMenuController(); // 메뉴 씬 컨트롤러 생성
             CreateButton("로비로 돌아가기", new Vector2(0f, -100f), controller.GoToLobby); // 로비 이동 버튼 생성
             GameObject debugObject = new GameObject("InputDebug"); // 입력 확인 오브젝트 생성
@@ -156,6 +157,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
         {
             GameObject canvasObject = new GameObject("Canvas"); // 캔버스 오브젝트 생성
             Canvas canvas = canvasObject.AddComponent<Canvas>(); // 캔버스 컴포넌트 추가
+            canvasObject.AddComponent<KoreanUIFontApplier>(); // 테스트 UI Canvas에 한글 표시 가능 폰트 자동 적용 컴포넌트 추가
             canvas.renderMode = RenderMode.ScreenSpaceOverlay; // 화면 오버레이 렌더 모드 설정
             CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>(); // 캔버스 스케일러 추가
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; // 기준 해상도 비례 스케일 설정

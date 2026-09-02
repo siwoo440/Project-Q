@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestShield
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_test_shield
-  displayName: Test Shield
+  displayName: "\uC2DC\uD5D8 \uBC29\uBCBD"
   description: "9\uC77C\uCC28 \uB371 \uC21C\uD658 \uD14C\uC2A4\uD2B8\uC6A9 \uBC29\uC5B4
     \uCE74\uB4DC"
   rarity: 2

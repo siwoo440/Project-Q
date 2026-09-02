@@ -2,6 +2,7 @@ using System; // C# 난수와 예외 기능 사용
 using System.Collections.Generic; // 보상 후보 컬렉션 기능 사용
 using ProjectQ.Cards; // 카드 덱 필터 기능 사용
 using ProjectQ.Player; // 플레이어 체력 보상 필터 기능 사용
+using ProjectQ.Relics; // 유물 중복 보상 필터 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
 
 namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
@@ -23,14 +24,19 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
             random = new System.Random(randomSeed != 0 ? randomSeed : Environment.TickCount); // 보상 후보 난수 생성기 준비
         }
 
-        public List<RewardData> GenerateChoices(int count, RunDeck deck, PlayerStats playerStats) // 중복 없는 전투 보상 후보 생성 메서드
+        public List<RewardData> GenerateChoices(int count, RunDeck deck, PlayerStats playerStats) // 11일차 호출 호환 보상 후보 생성 메서드
+        {
+            return GenerateChoices(count, deck, playerStats, null); // 유물 인벤토리 없이 기존 보상 후보 생성 흐름 유지
+        }
+
+        public List<RewardData> GenerateChoices(int count, RunDeck deck, PlayerStats playerStats, RelicInventory relicInventory) // 카드와 유물 중복을 검사하는 전투 보상 후보 생성 메서드
         {
             if (random == null) // 보상 난수 생성기 존재 여부 확인
             {
                 random = new System.Random(randomSeed != 0 ? randomSeed : Environment.TickCount); // 누락된 보상 난수 생성기 준비
             }
 
-            List<RewardData> available = BuildValidPool(deck, playerStats); // 현재 덱과 플레이어 상태 기준 유효 보상 후보 목록 생성
+            List<RewardData> available = BuildValidPool(deck, playerStats, relicInventory); // 현재 덱과 플레이어와 유물 상태 기준 유효 보상 후보 목록 생성
             List<RewardData> result = new List<RewardData>(); // 최종 보상 후보 결과 목록 생성
             int targetCount = Mathf.Min(Mathf.Max(0, count), available.Count); // 실제 생성 가능한 보상 후보 수 계산
 
@@ -49,12 +55,12 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
             return result; // 생성된 보상 후보 목록 반환
         }
 
-        private List<RewardData> BuildValidPool(RunDeck deck, PlayerStats playerStats) // 현재 조건에 맞는 유효 보상 후보 목록 생성 메서드
+        private List<RewardData> BuildValidPool(RunDeck deck, PlayerStats playerStats, RelicInventory relicInventory) // 현재 조건에 맞는 유효 보상 후보 목록 생성 메서드
         {
             List<RewardData> valid = new List<RewardData>(); // 유효 보상 후보 결과 목록 생성
             foreach (RewardData reward in candidates) // 전체 보상 데이터 후보 순회
             {
-                if (!IsValidCandidate(reward, deck, playerStats)) // 현재 보상 데이터 유효성 확인
+                if (!IsValidCandidate(reward, deck, playerStats, relicInventory)) // 현재 보상 데이터 유효성 확인
                 {
                     continue; // 무효 보상 후보 생성 목록에서 제외
                 }
@@ -65,7 +71,7 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
             return valid; // 현재 조건에 맞는 유효 보상 후보 목록 반환
         }
 
-        private bool IsValidCandidate(RewardData reward, RunDeck deck, PlayerStats playerStats) // 단일 보상 후보 유효성 확인 메서드
+        private bool IsValidCandidate(RewardData reward, RunDeck deck, PlayerStats playerStats, RelicInventory relicInventory) // 단일 보상 후보 유효성 확인 메서드
         {
             if (reward == null || !reward.EnabledForGeneration || reward.BaseWeight <= 0f) // 보상 데이터와 생성 허용 상태 확인
             {
@@ -91,7 +97,12 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
                 case RewardType.Heal: // 즉시 회복 보상 유효성 확인
                     return reward.HealAmount > 0f && (playerStats == null || playerStats.CurrentHealth < playerStats.MaxHealth); // 체력이 부족한 경우에만 양수 회복 보상 생성 허용
                 case RewardType.Relic: // 유물 보상 유효성 확인
-                    return false; // 12일차 유물 시스템 연결 전까지 유물 후보 필터링
+                    if (reward.RelicData == null) // 유물 원본 데이터 존재 여부 확인
+                    {
+                        return false; // 유물 데이터 누락 보상 제외
+                    }
+
+                    return relicInventory == null || !relicInventory.ContainsRelic(reward.RelicData.Id); // 현재 회차에서 이미 보유한 동일 유물 보상 제외
                 default: // 알 수 없는 보상 유형 처리
                     return false; // 알 수 없는 보상 후보 제외
             }

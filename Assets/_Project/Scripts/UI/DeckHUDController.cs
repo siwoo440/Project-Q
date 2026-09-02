@@ -49,24 +49,24 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
 
             if (drawText != null) // Draw 텍스트 확인
             {
-                drawText.text = $"DRAW {deck.DrawCount}"; // Draw 수 표시
+                drawText.text = $"뽑을 카드 {deck.DrawCount}"; // Draw 수 표시
             }
 
             if (discardText != null) // Discard 텍스트 확인
             {
-                discardText.text = $"DISCARD {deck.DiscardCount}"; // Discard 수 표시
+                discardText.text = $"버린 카드 {deck.DiscardCount}"; // Discard 수 표시
             }
 
             if (totalText != null) // 전체 덱 텍스트 확인
             {
-                totalText.text = $"DECK {deck.TotalCardCount}"; // 전체 카드 수 표시
+                totalText.text = $"덱 {deck.TotalCardCount}"; // 전체 카드 수 표시
             }
 
             int selectedIndex = cardUseController != null ? cardUseController.SelectedSlotIndex : 0; // 현재 선택 슬롯 계산
             if (selectionText != null) // 선택 안내 텍스트 확인
             {
                 string selectedKey = selectedIndex == 0 ? "Q" : "E"; // 선택 키 계산
-                selectionText.text = $"SELECTED : {selectedKey}   |   Q / E SELECT   |   LEFT CLICK USE"; // 조작 안내 표시
+                selectionText.text = $"선택 : {selectedKey}   |   Q / E 선택   |   좌클릭 사용"; // 조작 안내 표시
             }
 
             for (int index = 0; index < slotTexts.Length; index++) // 두 카드 슬롯 순회
@@ -84,16 +84,16 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
 
             if (card == null || card.Data == null) // 카드 존재 여부 확인
             {
-                slotText.text = $"{key}\nEMPTY"; // 빈 슬롯 표시
+                slotText.text = $"{key}\n비어 있음"; // 빈 슬롯 표시
                 background.color = selected ? new Color(0.16f, 0.2f, 0.3f, 0.98f) : new Color(0.08f, 0.1f, 0.15f, 0.94f); // 빈 슬롯 색상 적용
                 return; // 빈 슬롯 처리 종료
             }
 
             string status = GetStatus(card); // 카드 사용 상태 계산
             string mark = selected ? ">" : " "; // 선택 강조 문자 계산
-            slotText.text = $"{mark} {key}  {card.Data.DisplayName}\nMP {card.Data.MpCost}  |  {status}\nUP +{card.UpgradeLevel}"; // 카드 정보 표시
+            slotText.text = $"{mark} {key}  {KoreanUIStrings.GetCardName(card.Data)}\nMP {card.Data.MpCost}  |  {status}\n강화 +{card.UpgradeLevel}"; // 카드 정보 표시
             Color baseColor = GetRarityColor(card.Data.Rarity); // 등급 기본 색상 계산
-            if (status == "NO MP") // MP 부족 여부 확인
+            if (status == "MP 부족") // MP 부족 여부 확인
             {
                 baseColor = Color.Lerp(baseColor, new Color(0.12f, 0.12f, 0.13f, 1f), 0.6f); // MP 부족 어둡게 표시
             }
@@ -105,15 +105,15 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
         {
             if (playerStats != null && playerStats.CurrentMana < card.Data.MpCost) // MP 부족 확인
             {
-                return "NO MP"; // MP 부족 상태 반환
+                return "MP 부족"; // MP 부족 상태 반환
             }
 
             if (!card.IsReady) // 쿨타임 여부 확인
             {
-                return $"CD {card.CooldownRemaining:F1}"; // 남은 쿨타임 반환
+                return $"쿨타임 {card.CooldownRemaining:F1}"; // 남은 쿨타임 반환
             }
 
-            return "READY"; // 사용 가능 상태 반환
+            return "사용 가능"; // 사용 가능 상태 반환
         }
 
         private static Color GetRarityColor(CardRarity rarity) // 카드 등급 색상 반환

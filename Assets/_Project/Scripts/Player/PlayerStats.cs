@@ -44,6 +44,51 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
             baseManaRegenPerSecond = Mathf.Max(0f, manaPerSecond); // 기본 MP 자동 회복량을 0 이상으로 보정
         }
 
+        public float AddMaxHealth(float amount, bool healAddedAmount) // 유물 기반 최대 HP 증가 메서드
+        {
+            if (amount <= 0f) // 유효 최대 HP 증가량 여부 확인
+            {
+                return 0f; // 실제 최대 HP 증가량 없음 반환
+            }
+
+            maxHealth += amount; // 플레이어 최대 HP 증가
+            if (healAddedAmount) // 증가한 최대 HP만큼 현재 HP도 채울지 확인
+            {
+                currentHealth = Mathf.Min(maxHealth, currentHealth + amount); // 증가한 최대 HP만큼 현재 HP 회복
+            }
+
+            HealthChanged?.Invoke(currentHealth, maxHealth); // 최대 HP와 현재 HP 변경 알림
+            return amount; // 실제 최대 HP 증가량 반환
+        }
+
+        public float AddMaxMana(float amount, bool restoreAddedAmount) // 유물 기반 최대 MP 증가 메서드
+        {
+            if (amount <= 0f) // 유효 최대 MP 증가량 여부 확인
+            {
+                return 0f; // 실제 최대 MP 증가량 없음 반환
+            }
+
+            maxMana += amount; // 플레이어 최대 MP 증가
+            if (restoreAddedAmount) // 증가한 최대 MP만큼 현재 MP도 채울지 확인
+            {
+                currentMana = Mathf.Min(maxMana, currentMana + amount); // 증가한 최대 MP만큼 현재 MP 회복
+            }
+
+            ManaChanged?.Invoke(currentMana, maxMana); // 최대 MP와 현재 MP 변경 알림
+            return amount; // 실제 최대 MP 증가량 반환
+        }
+
+        public float AddBaseManaRegen(float amount) // 유물 기반 기본 MP 자동 회복 증가 메서드
+        {
+            if (amount <= 0f) // 유효 기본 MP 회복 증가량 여부 확인
+            {
+                return 0f; // 실제 기본 MP 회복 증가량 없음 반환
+            }
+
+            baseManaRegenPerSecond += amount; // 플레이어 기본 초당 MP 자동 회복량 증가
+            return amount; // 실제 기본 MP 회복 증가량 반환
+        }
+
         private void Awake() // 플레이어 전투 상태 초기화 메서드
         {
             ResetStats(); // 플레이어 전투 상태 최대치 초기화

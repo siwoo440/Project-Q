@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: BlastShot
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
   id: card_blast_shot
-  displayName: Blast Shot
+  displayName: "\uD3ED\uBC1C\uD0C4"
   description: "\uC801\uC911 \uC9C0\uC810 \uC8FC\uBCC0\uC5D0 \uD3ED\uBC1C \uD53C\uD574\uB97C
-    \uC900\uB2E4."
+    \uC90D\uB2C8\uB2E4."
   rarity: 2
   type: 0
   mpCost: 18
   cooldown: 1.6
-  upgradeValue: 0
+  upgradeValue: 4
   effect: {fileID: 11400000, guid: 556fef99ce36bff4aaa02e3205f93fa0, type: 2}

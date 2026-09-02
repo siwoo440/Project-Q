@@ -111,17 +111,17 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
 
         private void HandleHealthChanged(float current, float maximum) // 체력 변경 HUD 처리 메서드
         {
-            ApplyBar(healthFill, healthText, "HP", current, maximum); // 체력 게이지와 수치 갱신
+            ApplyBar(healthFill, healthText, "체력", current, maximum); // 체력 게이지와 수치 갱신
         }
 
         private void HandleManaChanged(float current, float maximum) // 마나 변경 HUD 처리 메서드
         {
-            ApplyBar(manaFill, manaText, "MP", current, maximum); // 마나 게이지와 수치 갱신
+            ApplyBar(manaFill, manaText, "마나", current, maximum); // 마나 게이지와 수치 갱신
         }
 
         private void HandleShieldChanged(float current, float maximum) // 실드 변경 HUD 처리 메서드
         {
-            ApplyBar(shieldFill, shieldText, "SH", current, maximum); // 실드 게이지와 수치 갱신
+            ApplyBar(shieldFill, shieldText, "실드", current, maximum); // 실드 게이지와 수치 갱신
         }
 
         private void HandleArenaStateChanged(CombatState nextState) // 아레나 상태 변경 HUD 처리 메서드
@@ -164,17 +164,17 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
 
             if (playerDodge.IsDodging) // 현재 회피 이동 중인지 확인
             {
-                dodgeText.text = "DODGE ACTIVE"; // 회피 진행 상태 표시
+                dodgeText.text = "회피 중"; // 회피 진행 상태 표시
                 return; // 추가 회피 텍스트 처리 중단
             }
 
             if (playerDodge.CooldownRemaining <= 0f) // 회피 재사용 가능 여부 확인
             {
-                dodgeText.text = "DODGE READY"; // 회피 준비 완료 상태 표시
+                dodgeText.text = "회피 준비"; // 회피 준비 완료 상태 표시
                 return; // 추가 회피 텍스트 처리 중단
             }
 
-            dodgeText.text = $"DODGE {playerDodge.CooldownRemaining:F1}s"; // 남은 회피 쿨타임 표시
+            dodgeText.text = $"회피 {playerDodge.CooldownRemaining:F1}초"; // 남은 회피 쿨타임 표시
         }
 
         private void RefreshEnemyCount() // 적 수 HUD 갱신 메서드
@@ -186,7 +186,7 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
 
             int remaining = enemySpawner != null ? enemySpawner.ActiveEnemyCount : 0; // 현재 생존 적 수 계산
             int total = enemySpawner != null ? enemySpawner.SpawnPointCount : 0; // 전체 적 생성 슬롯 수 계산
-            enemyText.text = $"ENEMIES {remaining} / {total}"; // 현재 남은 적 수 표시
+            enemyText.text = $"적 {remaining} / {total}"; // 현재 남은 적 수 표시
         }
 
         private void RefreshArenaState() // 아레나 상태 HUD 갱신 메서드
@@ -194,7 +194,7 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
             CombatState currentState = arena != null ? arena.State : CombatState.Idle; // 현재 전투 상태 계산
             if (stateText != null) // 전투 상태 텍스트 존재 여부 확인
             {
-                stateText.text = $"COMBAT : {currentState.ToString().ToUpperInvariant()}"; // 현재 전투 상태 표시
+                stateText.text = $"전투 : {KoreanUIStrings.GetCombatState(currentState)}"; // 현재 전투 상태 표시
             }
 
             if (clearText != null) // 전투 클리어 텍스트 존재 여부 확인
