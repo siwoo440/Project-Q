@@ -93,7 +93,6 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
         {
             PlayerStats stats = playerObject.GetComponent<PlayerStats>(); // 플레이어 전투 상태 검색
             PlayerDodge dodge = playerObject.GetComponent<PlayerDodge>(); // 플레이어 회피 상태 검색
-            Sprite uiSprite = GetUiSprite(); // HUD 공통 UI 스프라이트 불러오기
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); // Unity 기본 런타임 폰트 불러오기
             GameObject canvasObject = new GameObject("CombatHUDCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler)); // 전투 HUD Canvas 오브젝트 생성
             Canvas canvas = canvasObject.GetComponent<Canvas>(); // 생성된 Canvas 컴포넌트 가져오기
@@ -107,14 +106,14 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
 
             RectTransform panel = CreateRect("StatusPanel", canvasObject.transform, new Vector2(24f, -24f), new Vector2(560f, 300f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f)); // 좌상단 전투 상태 패널 생성
             Image panelImage = panel.gameObject.AddComponent<Image>(); // 전투 상태 패널 배경 이미지 추가
-            panelImage.sprite = uiSprite; // 패널 배경용 기본 UI 스프라이트 적용
+            panelImage.sprite = null; // 내장 UISprite 없이 단색 패널 사용
             panelImage.color = new Color(0.04f, 0.05f, 0.08f, 0.82f); // 전투 HUD 반투명 배경 색상 적용
 
             CreateText("Title", panel, "PROJECT Q / COMBAT", font, 24, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, -16f), new Vector2(500f, 32f)); // 전투 HUD 제목 생성
-            CreateBar(panel, "Health", "HP", -62f, new Color(0.9f, 0.2f, 0.2f, 1f), uiSprite, font, out Image hpFill, out Text hpText); // 체력 HUD 게이지 생성
-            CreateBar(panel, "Mana", "MP", -108f, new Color(0.25f, 0.55f, 1f, 1f), uiSprite, font, out Image mpFill, out Text mpText); // 마나 HUD 게이지 생성
-            CreateBar(panel, "Shield", "SH", -154f, new Color(0.25f, 0.9f, 1f, 1f), uiSprite, font, out Image shieldFill, out Text shieldText); // 실드 HUD 게이지 생성
-            CreateBar(panel, "Dodge", "DG", -200f, new Color(1f, 0.82f, 0.2f, 1f), uiSprite, font, out Image dodgeFill, out Text dodgeText); // 회피 HUD 게이지 생성
+            CreateBar(panel, "Health", "HP", -62f, new Color(0.9f, 0.2f, 0.2f, 1f), font, out Image hpFill, out Text hpText); // 체력 HUD 게이지 생성
+            CreateBar(panel, "Mana", "MP", -108f, new Color(0.25f, 0.55f, 1f, 1f), font, out Image mpFill, out Text mpText); // 마나 HUD 게이지 생성
+            CreateBar(panel, "Shield", "SH", -154f, new Color(0.25f, 0.9f, 1f, 1f), font, out Image shieldFill, out Text shieldText); // 실드 HUD 게이지 생성
+            CreateBar(panel, "Dodge", "DG", -200f, new Color(1f, 0.82f, 0.2f, 1f), font, out Image dodgeFill, out Text dodgeText); // 회피 HUD 게이지 생성
             Text enemyText = CreateText("EnemyText", panel, "ENEMIES 0 / 0", font, 20, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, -246f), new Vector2(250f, 34f)); // 남은 적 수 텍스트 생성
             Text stateText = CreateText("StateText", panel, "COMBAT : IDLE", font, 20, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(280f, -246f), new Vector2(250f, 34f)); // 전투 상태 텍스트 생성
             Text clearText = CreateCenterClearText(canvasObject.transform, font); // 중앙 전투 클리어 텍스트 생성
@@ -122,18 +121,18 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             hud.Configure(stats, dodge, arena, spawner, hpFill, mpFill, shieldFill, dodgeFill, hpText, mpText, shieldText, dodgeText, enemyText, stateText, clearText); // 플레이어와 아레나 상태를 HUD에 연결
         }
 
-        private static void CreateBar(Transform parent, string objectName, string label, float y, Color fillColor, Sprite uiSprite, Font font, out Image fill, out Text valueText) // 공통 전투 자원 게이지 생성 메서드
+        private static void CreateBar(Transform parent, string objectName, string label, float y, Color fillColor, Font font, out Image fill, out Text valueText) // 공통 전투 자원 게이지 생성 메서드
         {
             CreateText(objectName + "Label", parent, label, font, 19, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(20f, y), new Vector2(66f, 30f)); // 게이지 종류 라벨 생성
             RectTransform background = CreateRect(objectName + "Background", parent, new Vector2(90f, y), new Vector2(300f, 28f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 0.5f)); // 게이지 배경 영역 생성
             Image backgroundImage = background.gameObject.AddComponent<Image>(); // 게이지 배경 이미지 추가
-            backgroundImage.sprite = uiSprite; // 게이지 배경 UI 스프라이트 적용
+            backgroundImage.sprite = null; // 내장 UISprite 없이 단색 게이지 배경 사용
             backgroundImage.color = new Color(0.15f, 0.17f, 0.21f, 1f); // 게이지 어두운 배경 색상 적용
             RectTransform fillRect = CreateRect(objectName + "Fill", background, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.one, Vector2.zero); // 게이지 채움 전체 Stretch 영역 생성
             fillRect.offsetMin = new Vector2(2f, 2f); // 게이지 채움 왼쪽 아래 여백 설정
             fillRect.offsetMax = new Vector2(-2f, -2f); // 게이지 채움 오른쪽 위 여백 설정
             fill = fillRect.gameObject.AddComponent<Image>(); // 게이지 채움 이미지 추가
-            fill.sprite = uiSprite; // 게이지 채움 UI 스프라이트 적용
+            fill.sprite = null; // 내장 UISprite 없이 단색 게이지 채움 사용
             fill.color = fillColor; // 자원 종류별 게이지 색상 적용
             fill.type = Image.Type.Filled; // 게이지를 비율 채움 방식으로 설정
             fill.fillMethod = Image.FillMethod.Horizontal; // 게이지 가로 채움 방식 설정
@@ -180,17 +179,6 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             rect.anchoredPosition = anchoredPosition; // HUD 로컬 앵커 위치 적용
             rect.sizeDelta = size; // HUD 요소 크기 적용
             return rect; // 구성된 RectTransform 반환
-        }
-
-        private static Sprite GetUiSprite() // HUD 공통 UI 스프라이트 반환 메서드
-        {
-            Sprite sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd"); // Unity 기본 UI Sprite 검색
-            if (sprite != null) // 기본 UI Sprite 존재 여부 확인
-            {
-                return sprite; // 기본 UI Sprite 반환
-            }
-
-            return AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd"); // 대체 Unity UI Sprite 반환
         }
 
         private static void RemoveExistingDay7Objects() // 기존 7일차 구성 정리 메서드

@@ -55,8 +55,7 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
 
             RemoveExistingDay8Objects(hudCanvas.transform); // 기존 8일차 Game Over 구성 제거
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); // Unity 기본 런타임 폰트 불러오기
-            Sprite uiSprite = GetUiSprite(); // Unity 기본 UI 스프라이트 불러오기
-            CreateGameOverPanel(hudCanvas.transform, font, uiSprite, out GameObject gameOverPanel, out Button retryButton); // Game Over 패널과 Retry 버튼 생성
+            CreateGameOverPanel(hudCanvas.transform, font, out GameObject gameOverPanel, out Button retryButton); // Game Over 패널과 Retry 버튼 생성
             CreateCombatFlowController(playerObject, arena, spawner, pool, gameOverPanel, retryButton); // 플레이어 사망과 Retry 전투 흐름 생성
             gameOverPanel.SetActive(false); // 기본 상태에서 Game Over 패널 숨김
             EditorSceneManager.MarkSceneDirty(scene); // 게임 씬 변경 상태 표시
@@ -102,30 +101,30 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             flow.Configure(stats, movement, dodge, aim, tester, body, arena, spawner, pool, gameOverPanel, retryButton); // 모든 플레이어와 전투 시스템 참조 연결
         }
 
-        private static void CreateGameOverPanel(Transform canvasTransform, Font font, Sprite uiSprite, out GameObject panelObject, out Button retryButton) // Game Over 전체 UI 생성 메서드
+        private static void CreateGameOverPanel(Transform canvasTransform, Font font, out GameObject panelObject, out Button retryButton) // Game Over 전체 UI 생성 메서드
         {
             RectTransform panel = CreateRect("GameOverPanel", canvasTransform, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f)); // 전체 화면 Game Over 패널 생성
             panel.offsetMin = Vector2.zero; // 전체 화면 패널 왼쪽 아래 여백 제거
             panel.offsetMax = Vector2.zero; // 전체 화면 패널 오른쪽 위 여백 제거
             Image overlayImage = panel.gameObject.AddComponent<Image>(); // Game Over 전체 화면 배경 이미지 추가
-            overlayImage.sprite = uiSprite; // 기본 UI Sprite 적용
+            overlayImage.sprite = null; // 내장 UISprite 없이 단색 Game Over 배경 사용
             overlayImage.color = new Color(0.01f, 0.01f, 0.02f, 0.82f); // 화면을 어둡게 가리는 반투명 배경 적용
             panelObject = panel.gameObject; // 생성된 Game Over 패널 반환
 
             RectTransform dialog = CreateRect("Dialog", panel, Vector2.zero, new Vector2(760f, 420f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)); // 화면 중앙 Game Over 대화상자 생성
             Image dialogImage = dialog.gameObject.AddComponent<Image>(); // Game Over 대화상자 배경 이미지 추가
-            dialogImage.sprite = uiSprite; // 대화상자 기본 UI Sprite 적용
+            dialogImage.sprite = null; // 내장 UISprite 없이 단색 대화상자 사용
             dialogImage.color = new Color(0.07f, 0.08f, 0.12f, 0.98f); // Game Over 대화상자 배경 색상 적용
             CreateText("GameOverTitle", dialog, "GAME OVER", font, 64, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, 100f), new Vector2(680f, 100f)); // Game Over 제목 생성
             CreateText("GameOverGuide", dialog, "Press R / Gamepad A or click RETRY", font, 24, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(0f, 10f), new Vector2(680f, 60f)); // Retry 입력 안내 생성
-            retryButton = CreateRetryButton(dialog, font, uiSprite); // 중앙 Retry 버튼 생성
+            retryButton = CreateRetryButton(dialog, font); // 중앙 Retry 버튼 생성
         }
 
-        private static Button CreateRetryButton(Transform parent, Font font, Sprite uiSprite) // Retry 버튼 생성 메서드
+        private static Button CreateRetryButton(Transform parent, Font font) // Retry 버튼 생성 메서드
         {
             RectTransform buttonRect = CreateRect("RetryButton", parent, new Vector2(0f, -105f), new Vector2(300f, 78f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)); // Retry 버튼 영역 생성
             Image buttonImage = buttonRect.gameObject.AddComponent<Image>(); // Retry 버튼 배경 이미지 추가
-            buttonImage.sprite = uiSprite; // Retry 버튼 기본 UI Sprite 적용
+            buttonImage.sprite = null; // 내장 UISprite 없이 단색 Retry 버튼 사용
             buttonImage.color = new Color(0.2f, 0.58f, 1f, 1f); // Retry 버튼 강조 색상 적용
             Button button = buttonRect.gameObject.AddComponent<Button>(); // Retry 버튼 상호작용 컴포넌트 추가
             button.targetGraphic = buttonImage; // Retry 버튼 시각 대상 이미지 연결
@@ -164,17 +163,6 @@ namespace ProjectQ.EditorTools // 프로젝트 에디터 도구 네임스페이�
             rect.anchoredPosition = anchoredPosition; // UI 로컬 앵커 위치 적용
             rect.sizeDelta = size; // UI 요소 크기 적용
             return rect; // 구성된 RectTransform 반환
-        }
-
-        private static Sprite GetUiSprite() // Game Over 공통 UI 스프라이트 반환 메서드
-        {
-            Sprite sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd"); // Unity 기본 UI Sprite 검색
-            if (sprite != null) // 기본 UI Sprite 존재 여부 확인
-            {
-                return sprite; // 기본 UI Sprite 반환
-            }
-
-            return AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd"); // 대체 Unity UI Sprite 반환
         }
 
         private static void RemoveExistingDay8Objects(Transform hudCanvas) // 기존 8일차 구성 정리 메서드
