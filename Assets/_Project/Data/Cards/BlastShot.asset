@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ff4e3c7e4e4bd380d818458f2a7ed2, type: 3}
+  m_Name: BlastShot
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.CardData
+  id: card_blast_shot
+  displayName: Blast Shot
+  description: "\uC801\uC911 \uC9C0\uC810 \uC8FC\uBCC0\uC5D0 \uD3ED\uBC1C \uD53C\uD574\uB97C
+    \uC900\uB2E4."
+  rarity: 2
+  type: 0
+  mpCost: 18
+  cooldown: 1.6
+  upgradeValue: 0
+  effect: {fileID: 11400000, guid: 556fef99ce36bff4aaa02e3205f93fa0, type: 2}

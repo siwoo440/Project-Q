@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8132825314954360256}
   - component: {fileID: 1775154566954257023}
   - component: {fileID: 8373686190531437258}
+  - component: {fileID: 4270691262917247489}
   m_Layer: 12
   m_Name: PlayerProjectile
   m_TagString: Untagged
@@ -173,6 +174,18 @@ MonoBehaviour:
   speed: 18
   damage: 25
   lifeTime: 4
+--- !u!114 &4270691262917247489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2210772843579160364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5228c9c484294e9895f03a58a99ea638, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Combat.ProjectileCardModifier
 --- !u!1 &7578120003621737714
 GameObject:
   m_ObjectHideFlags: 0

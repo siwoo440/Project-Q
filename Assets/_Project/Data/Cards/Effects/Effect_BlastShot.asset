@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdd7e73d2a4e40d28a8d23ef7f350204, type: 3}
+  m_Name: Effect_BlastShot
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Cards.ProjectileCardEffect
+  style: 2
+  projectilePrefab: {fileID: 8373686190531437258, guid: b7ff30dffd3d5ca43b05ffe9201690ee, type: 3}
+  projectileSpeed: 15
+  damage: 14
+  lifeTime: 3.5
+  spawnDistance: 1.4
+  pierceCount: 0
+  explosionRadius: 2.6
+  explosionDamage: 20
+  homingTurnSpeed: 0
+  homingRange: 0
