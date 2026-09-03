@@ -2,11 +2,14 @@ using UnityEngine; // Unity 기본 기능 사용
 
 namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
 {
-    public sealed class RoomPrototypeLayout : MonoBehaviour // 15일차 수동 3구역 연결 상태 초기화 클래스
+    public sealed class RoomPrototypeLayout : MonoBehaviour // 수동 3구역 좌표·연결 상태 초기화 클래스
     {
         [SerializeField] private RoomController startRoom; // 시작 구역 참조
         [SerializeField] private RoomController combatRoomA; // 오른쪽 일반 전투 구역 참조
         [SerializeField] private RoomController combatRoomB; // 위쪽 일반 전투 구역 참조
+
+        public RoomController StartRoom => startRoom; // 시작 구역 반환
+        public RoomController[] Rooms => new[] { startRoom, combatRoomA, combatRoomB }; // 현재 수동 테스트 구역 3개 반환
 
         public void Configure(RoomController start, RoomController combatA, RoomController combatB) // 에디터 자동 구성용 테스트 구역 참조 설정 메서드
         {
@@ -17,7 +20,7 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
 
         private void Awake() // 테스트 구역 좌표와 연결 상태 초기화 메서드
         {
-            InitializeLayout(); // 15일차 수동 3구역 구조 생성
+            InitializeLayout(); // 수동 3구역 구조 생성
         }
 
         public void InitializeLayout() // 수동 테스트 격자 구조 초기화 메서드
@@ -35,6 +38,10 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             ConnectBidirectional(combatRoomA, RoomDirection.Up, combatRoomB); // 전투 A 위쪽과 전투 B 아래쪽을 양방향 연결
 
             startRoom.RuntimeData.SetVisited(true); // 시작 구역을 최초 방문 상태로 설정
+            startRoom.RuntimeData.SetCleared(true); // 시작 구역은 전투가 없는 기본 클리어 상태로 설정
+            combatRoomA.RuntimeData.SetCleared(false); // 전투 A는 아직 미클리어 상태로 초기화
+            combatRoomB.RuntimeData.SetCleared(false); // 전투 B는 아직 미클리어 상태로 초기화
+
             startRoom.ApplyDoorStates(false); // 시작 구역 연결 상태를 Door에 반영
             combatRoomA.ApplyDoorStates(false); // 전투 A 연결 상태를 Door에 반영
             combatRoomB.ApplyDoorStates(false); // 전투 B 연결 상태를 Door에 반영

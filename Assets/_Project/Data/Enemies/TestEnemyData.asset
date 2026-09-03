@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestEnemyData
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Enemies.EnemyData
   displayName: Test Enemy
-  maxHealth: 80
+  maxHealth: 20
   moveSpeed: 3.2
   preferredDistance: 7
   distanceTolerance: 1.2

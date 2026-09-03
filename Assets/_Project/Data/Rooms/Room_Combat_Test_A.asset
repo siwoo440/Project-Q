@@ -15,4 +15,5 @@ MonoBehaviour:
   id: room_combat_test_a
   displayName: "\uC804\uD22C \uAD6C\uC5ED A"
   roomType: 1
+  roomSizeType: 0
   roomPrefab: {fileID: 1778629692370952217, guid: addc9f74d6fe5e947b5d1c82914dc9e4, type: 3}

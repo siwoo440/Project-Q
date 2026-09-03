@@ -3,22 +3,55 @@ using UnityEngine; // Unity 기본 기능 사용
 
 namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
 {
-    public sealed class RoomController : MonoBehaviour // 단일 구역 원본·회차 상태·4방향 Door 관리 클래스
+    public sealed class RoomController : MonoBehaviour // 단일 구역 원본·회차 상태·Door·CameraBounds·시각 관리 클래스
     {
         [SerializeField] private RoomData roomData; // 현재 구역 원본 데이터
         [SerializeField] private Door[] doors; // 현재 구역 상하좌우 공통 Door 배열
+        [SerializeField] private BoxCollider2D cameraBounds; // 현재 구역 카메라 이동 제한 영역
+        [SerializeField] private RoomVisualController roomVisual; // 현재 방 바닥과 CurrentRoom 강조 시각 컨트롤러
         private readonly Dictionary<RoomDirection, Door> doorMap = new Dictionary<RoomDirection, Door>(); // 방향별 Door 빠른 검색 목록
         private RoomRuntimeData runtimeData; // 현재 회차 구역 상태
+        private RoomManager manager; // 현재 구역을 관리하는 RoomManager 참조
 
         public RoomData Data => roomData; // 현재 구역 원본 데이터 반환
         public RoomRuntimeData RuntimeData => runtimeData; // 현재 회차 구역 상태 반환
         public Vector2Int Coordinate => runtimeData != null ? runtimeData.Coordinate : Vector2Int.zero; // 현재 구역 좌표 반환
+        public BoxCollider2D CameraBounds => cameraBounds; // 현재 구역 카메라 이동 제한 영역 반환
+        public RoomVisualController Visual => roomVisual; // 현재 방 시각 컨트롤러 반환
+        public RoomManager Manager => manager; // 현재 구역 RoomManager 반환
 
-        public void Configure(RoomData data, Door[] roomDoors) // 에디터 자동 구성용 구역 원본과 Door 설정 메서드
+        public void Configure(RoomData data, Door[] roomDoors) // 15일차 기존 구역 원본과 Door 설정 호환 메서드
+        {
+            Configure(data, roomDoors, cameraBounds, roomVisual); // 현재 저장된 CameraBounds와 시각 참조를 유지한 확장 설정 적용
+        }
+
+        public void Configure(RoomData data, Door[] roomDoors, BoxCollider2D bounds) // 기존 16일차 CameraBounds 포함 설정 호환 메서드
+        {
+            Configure(data, roomDoors, bounds, roomVisual); // 현재 저장된 RoomVisual을 유지한 시각 보강 설정 적용
+        }
+
+        public void Configure(RoomData data, Door[] roomDoors, BoxCollider2D bounds, RoomVisualController visual) // 시각 보강 포함 구역 설정 메서드
         {
             roomData = data; // 현재 구역 원본 데이터 저장
             doors = roomDoors; // 현재 구역 Door 배열 저장
+            cameraBounds = bounds; // 현재 구역 카메라 제한 영역 저장
+            roomVisual = visual; // 현재 구역 바닥·현재 방 시각 참조 저장
             RebuildDoorMap(); // 방향별 Door 검색 목록 다시 생성
+        }
+
+        public void SetManager(RoomManager roomManager) // 현재 구역을 소유하는 RoomManager 연결 메서드
+        {
+            manager = roomManager; // 현재 구역 RoomManager 참조 저장
+        }
+
+        public void SetCameraBounds(BoxCollider2D bounds) // 현재 구역 카메라 제한 영역 설정 메서드
+        {
+            cameraBounds = bounds; // 현재 구역 CameraBounds 참조 저장
+        }
+
+        public void SetVisual(RoomVisualController visual) // 현재 구역 시각 컨트롤러 설정 메서드
+        {
+            roomVisual = visual; // 현재 방 시각 컨트롤러 참조 저장
         }
 
         public void InitializeRuntime(Vector2Int coordinate) // 새 회차 구역 상태 생성 메서드
@@ -49,6 +82,36 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             {
                 door.SetLocked(locked); // 지정 문의 잠금 상태 적용
             }
+        }
+
+        public void LockConnectedDoors() // 현재 연결된 모든 Door 잠금 메서드
+        {
+            EnsureDoorMap(); // 방향별 Door 검색 목록 존재 보장
+            foreach (Door door in doorMap.Values) // 현재 구역 Door 전체 순회
+            {
+                if (door != null && door.Connected) // 실제 인접 구역이 연결된 Door인지 확인
+                {
+                    door.SetLocked(true); // 전투방 진입 등에 사용할 연결 Door 잠금
+                }
+            }
+        }
+
+        public void UnlockConnectedDoors() // 현재 연결된 모든 Door 개방 메서드
+        {
+            EnsureDoorMap(); // 방향별 Door 검색 목록 존재 보장
+            foreach (Door door in doorMap.Values) // 현재 구역 Door 전체 순회
+            {
+                if (door != null && door.Connected) // 실제 인접 구역이 연결된 Door인지 확인
+                {
+                    door.SetLocked(false); // 클리어 후 연결 Door를 다시 Open 상태로 변경
+                }
+            }
+        }
+
+        public void SetCleared(bool cleared) // 현재 회차 구역 클리어 상태 설정 메서드
+        {
+            EnsureRuntime(); // 현재 구역 회차 상태 존재 보장
+            runtimeData.SetCleared(cleared); // 현재 구역 클리어 여부 저장
         }
 
         public Door GetDoor(RoomDirection direction) // 지정 방향 Door 반환 메서드
@@ -127,9 +190,16 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             RebuildDoorMap(); // 씬에 저장된 Door 배열 기준 검색 목록 생성
         }
 
-        private void OnDrawGizmosSelected() // Scene 뷰 구역 좌표 디버그 표시 메서드
+        private void OnDrawGizmosSelected() // Scene 뷰 구역 경계 디버그 표시 메서드
         {
-            Gizmos.DrawWireCube(transform.position, new Vector3(16f, 9f, 0f)); // 테스트 구역 기본 크기 외곽선 표시
+            if (cameraBounds != null) // 현재 구역 CameraBounds 존재 여부 확인
+            {
+                Bounds bounds = cameraBounds.bounds; // CameraBounds 월드 영역 읽기
+                Gizmos.DrawWireCube(bounds.center, bounds.size); // 실제 구역 카메라 경계를 Scene 뷰에 표시
+                return; // CameraBounds 기반 표시 완료
+            }
+
+            Gizmos.DrawWireCube(transform.position, new Vector3(16f, 9f, 0f)); // CameraBounds가 없으면 기존 테스트 크기 표시
         }
     }
 }
