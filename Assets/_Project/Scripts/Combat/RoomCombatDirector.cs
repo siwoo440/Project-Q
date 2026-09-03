@@ -1,4 +1,5 @@
 using System; // C# Room 전투 이벤트 기능 사용
+using System.Collections; // 전투 클리어 문구 지연 정리 기능 사용
 using System.Collections.Generic; // Room SpawnPoint 목록 기능 사용
 using ProjectQ.Cards; // Room 전투 시작 시 카드 덱 재구성 기능 사용
 using ProjectQ.Enemies; // 기존 EnemySpawner와 적 데이터 기능 사용
@@ -20,8 +21,10 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         [SerializeField] private int normalBaseEnemyCount = 3; // 일반 전투방 기본 적 수
         [SerializeField] private int eliteBonusEnemyCount = 2; // Elite 전투방 추가 적 수
         [SerializeField] private int maximumEnemyCount = 8; // 현재 Room 전투 최대 적 수
+        private const float ClearStateDisplayDuration = 0.8f; // 전투 클리어 중앙 문구 표시 시간
         private RoomController activeCombatRoom; // 현재 전투가 진행 또는 실패 중인 Room
         private bool combatActive; // 현재 Room 전투 진행 여부
+        private Coroutine clearResetRoutine; // Clear 상태 지연 초기화 코루틴 참조
 
         public event Action<RoomController> RoomCombatStarted; // Room 기반 전투 시작 알림 이벤트
         public event Action<RoomController> RoomCombatCleared; // Room 기반 전투 클리어 알림 이벤트
@@ -60,6 +63,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         private void OnDisable() // Room과 Arena 이벤트 연결 해제 메서드
         {
             UnsubscribeEvents(); // 중복 이벤트 호출 방지를 위해 현재 구독 해제
+            CancelPendingArenaReset(); // 비활성화 중 남아 있는 Clear 초기화 예약 정리
         }
 
         public bool RestartCurrentCombat() // Game Over Retry에서 현재 Room 전투를 다시 시작하는 메서드
@@ -135,16 +139,22 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             _ = previousRoom; // 현재 Day19에서는 이전 Room 참조를 별도 처리하지 않음
             if (currentRoom == null || !IsCombatRoom(currentRoom)) // NormalCombat 또는 EliteCombat Room인지 확인
             {
-                return; // Start·Shop·Rest·Reward·Event·Boss에서는 Day19 자동 전투 시작 생략
+                CancelPendingArenaReset(); // 방을 먼저 나갔다면 지연 Clear 초기화 예약 취소
+                ResetArenaExplorationState(); // Start·Shop·Rest·Reward·Event 이동 시 남은 Clear·Reward 상태 정리
+                return; // 비전투 Room에서는 자동 전투 시작 생략
             }
 
             if (currentRoom.RuntimeData == null) // 현재 회차 RoomRuntimeData 준비 여부 확인
             {
+                CancelPendingArenaReset(); // 잘못된 Room 진입 시 남은 지연 초기화 예약 취소
+                ResetArenaExplorationState(); // 초기화 실패 시 이전 전투 상태가 HUD에 남지 않도록 정리
                 return; // 초기화되지 않은 Room 전투 시작 방지
             }
 
             if (currentRoom.RuntimeData.Cleared) // 이미 클리어한 전투방 재방문 여부 확인
             {
+                CancelPendingArenaReset(); // 재방문 시 이전 Clear 지연 초기화 예약 취소
+                ResetArenaExplorationState(); // 재방문 탐색에서는 이전 Clear 상태 제거
                 currentRoom.UnlockConnectedDoors(); // 재방문한 클리어 Room의 연결 Door 열린 상태 보장
                 return; // 적 재생성 없이 탐색 계속
             }
@@ -158,6 +168,9 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             {
                 return; // 중복 전투 시작 방지
             }
+
+            CancelPendingArenaReset(); // 이전 Room Clear 지연 초기화가 새 전투를 끊지 않도록 예약 취소
+            ResetArenaExplorationState(); // 남아 있는 Clear·Reward 상태를 Idle로 정리한 뒤 전투 시작
 
             Transform[] spawnPoints = CollectSpawnPoints(room); // 현재 Tilemap Room의 SpawnPoints 자식 전체 수집
             if (!CanConfigureSpawner(spawnPoints)) // 기존 EnemySpawner를 현재 Room에 연결할 수 있는지 확인
@@ -199,6 +212,41 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             combatActive = false; // Room 전투 진행 상태 종료
             activeCombatRoom = null; // 클리어된 Room은 Retry 대상에서 제거
             RoomCombatCleared?.Invoke(clearedRoom); // Day20 보상·특수 Room 연동에 사용할 Room 클리어 이벤트 전달
+            CancelPendingArenaReset(); // 이전 Clear 초기화 예약이 있다면 중복 실행 방지
+            clearResetRoutine = StartCoroutine(ResetArenaStateAfterClearDelay()); // 잠깐 클리어 문구를 보여준 뒤 탐색 상태로 복귀
+        }
+
+        private IEnumerator ResetArenaStateAfterClearDelay() // 전투 클리어 문구 표시 후 Arena 상태 정리 코루틴
+        {
+            yield return new WaitForSeconds(ClearStateDisplayDuration); // 클리어 문구를 짧게 보여줄 시간 대기
+            clearResetRoutine = null; // 현재 지연 초기화 예약 참조 해제
+            ResetArenaExplorationState(); // Clear·Reward 상태를 Idle 탐색 상태로 복구
+        }
+
+        private void ResetArenaExplorationState() // Room 탐색 중 남은 Arena 완료 상태 정리 메서드
+        {
+            if (arena == null) // ArenaController 존재 여부 확인
+            {
+                return; // 전투 상태 정리 생략
+            }
+
+            if (arena.State != CombatState.Clear && arena.State != CombatState.Reward) // 탐색에 남으면 안 되는 완료 상태인지 확인
+            {
+                return; // Idle·Combat·Failed 상태는 유지
+            }
+
+            arena.ResetToIdle(); // HUD 클리어 문구와 이전 보상 상태를 탐색 대기로 초기화
+        }
+
+        private void CancelPendingArenaReset() // 예약된 Arena 상태 초기화 취소 메서드
+        {
+            if (clearResetRoutine == null) // 실행 중인 지연 초기화 존재 여부 확인
+            {
+                return; // 취소할 예약 없음
+            }
+
+            StopCoroutine(clearResetRoutine); // 이전 Clear 지연 초기화 코루틴 중단
+            clearResetRoutine = null; // 예약 참조 초기화
         }
 
         private void HandleArenaCombatFailed() // 플레이어 사망으로 Arena 전투가 실패했을 때 Room 상태 유지 메서드

@@ -25,6 +25,7 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
         public RoomTransitionState TransitionState => transitionState; // 현재 구역 이동 상태 반환
         public bool IsTransitioning => transitionState == RoomTransitionState.Moving; // 현재 Door 이동 잠금 상태 반환
         public int RoomCount => roomByCoordinate.Count; // 현재 등록된 구역 수 반환
+        public IEnumerable<RoomController> RegisteredRooms => roomByCoordinate.Values; // 현재 등록된 전체 Room을 지도·탐색 시스템에서 읽을 수 있도록 반환
 
         public void Configure(RoomController[] roomControllers, RoomController firstRoom, PlayerMovement movement, PlayerDodge dodge, Rigidbody2D body, RoomCameraController cameraController) // 에디터 자동 구성용 RoomManager 참조 설정 메서드
         {

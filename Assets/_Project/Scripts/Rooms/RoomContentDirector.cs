@@ -5,6 +5,7 @@ using ProjectQ.Combat; // 피해 정보 사용
 using ProjectQ.Player; // 플레이어 상태 사용
 using UnityEngine; // Unity 기본 기능 사용
 using UnityEngine.InputSystem; // 입력 기능 사용
+using UnityEngine.Tilemaps; // 특수 방 프로토타입 장애물 Tilemap 정리 기능 사용
 
 namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
 {
@@ -60,6 +61,9 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
         private string transientMessage = string.Empty; // 임시 안내 문구
         private float transientMessageUntil; // 임시 안내 종료 시각
         private int autoOpenedEventRoomId = int.MinValue; // 자동으로 연 이벤트 방 식별자
+        private MonoBehaviour activeExternalController; // 현재 RoomContentDirector가 연 외부 상점 컨트롤러
+        private bool externalControllerWasEnabled; // 외부 상점 열기 전 컴포넌트 활성 상태
+        private bool externalGameObjectWasActive; // 외부 상점 열기 전 GameObject 활성 상태
         private GUIStyle titleStyle; // 큰 제목 스타일
         private GUIStyle bodyStyle; // 본문 스타일
         private GUIStyle buttonStyle; // 버튼 스타일
@@ -96,10 +100,12 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
                 roomManager = FindFirstObjectByType<RoomManager>(); // 씬에서 RoomManager 자동 검색
             }
 
+            DisableLegacyRewardController(); // Room 탐색과 충돌하는 기존 전투 자동 보상 컨트롤러 비활성 유지
         }
 
         private void OnEnable() // 활성화 시 이벤트 연결 메서드
         {
+            DisableLegacyRewardController(); // 도메인 리로드 후에도 기존 자동 보상 시스템 비활성 상태 보장
             SubscribeRoomEvents(); // 현재 방 변경 이벤트 연결
             if (roomManager != null) // 방 관리자 준비 여부 확인
             {
@@ -110,7 +116,9 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
         private void OnDisable() // 비활성화 시 이벤트 해제 메서드
         {
             UnsubscribeRoomEvents(); // 현재 방 변경 이벤트 해제
+            CloseExternalController(true); // 외부 상점이 열린 채 비활성화될 때 정상 종료
             SetGameplayInputLock(false); // 비활성화 시 조작 잠금 해제
+            RestorePlayerControlSafety(); // 외부 컨트롤러가 남긴 이동·회피·카드 잠금 안전 복구
         }
 
         private void Update() // 프레임별 입력 처리 메서드
@@ -118,6 +126,22 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
             if (currentRoom == null) // 현재 방 존재 여부 확인
             {
                 return; // 현재 방이 없으면 처리 중단
+            }
+
+            if (activeExternalController != null) // RoomContentDirector가 연 기존 상점 화면 존재 여부 확인
+            {
+                if (!IsExternalControllerActive()) // 상점 UI 자체에서 이미 닫았는지 확인
+                {
+                    FinishExternalControllerTracking(true); // 외부 상점 추적과 입력 상태 정리
+                    return; // 같은 프레임 특수 방 입력 중복 처리 방지
+                }
+
+                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) // 외부 상점 ESC 닫기 입력 확인
+                {
+                    CloseExternalController(true); // 기존 ShopController.CloseShop 호출 후 이동 입력 복구
+                }
+
+                return; // 외부 상점 이용 중 다른 특수 방 입력 처리 차단
             }
 
             string roomTypeName = GetRoomTypeName(currentRoom); // 현재 방 타입 이름 조회
@@ -213,11 +237,14 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
         private void HandleRoomChanged(RoomController previousRoom, RoomController nextRoom) // 이전 방과 현재 방 변경 처리 메서드
         {
             _ = previousRoom; // Day20 특수 방 처리에서는 이전 방 참조를 별도로 사용하지 않음
+            CloseExternalController(true); // Door 이동 전 기존 상점이 남아 있으면 정상 종료와 이동 입력 복구
             if (activePanelMode != PanelMode.None) // 방 이동 중 패널 열림 여부 확인
             {
                 ClosePanel(true); // 방 이동 시 열린 패널과 전투 입력 잠금을 함께 정리
             }
 
+            RestorePlayerControlSafety(); // 이전 Shop·Reward 흐름에서 남을 수 있는 조작 비활성 상태 안전 복구
+            DisableLegacyRewardController(); // 방 이동마다 기존 전투 자동 보상 컨트롤러 비활성 상태 재확인
             currentRoom = nextRoom; // 현재 방 참조 갱신
             currentVisual = null; // 현재 비주얼 참조 초기화
             if (currentRoom == null) // 새 방 존재 여부 확인
@@ -231,12 +258,40 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
                 return; // 일반 방이면 처리 종료
             }
 
+            PrepareSpecialRoomTraversal(currentRoom); // Day18 프로토타입 장애물과 특수 방 Door 상태를 실제 Day20 콘텐츠 기준으로 정리
             EnsureCurrentRoomVisual(); // 이동한 특수 방 비주얼 배치 보장
             if (roomTypeName == "Event" && !GetRoomRuntimeFlag(currentRoom, "SpecialUsed")) // 이벤트 방 즉시 패널 시작 조건 확인
             {
                 autoOpenedEventRoomId = currentRoom.GetInstanceID(); // 자동 오픈 이벤트 방 식별자 저장
                 OpenPanel(PanelMode.Event); // 이벤트 패널 자동 시작
             }
+        }
+
+        private void PrepareSpecialRoomTraversal(RoomController room) // 특수 방의 옛 프로토타입 충돌과 Door 상태 정리 메서드
+        {
+            if (room == null) // 대상 특수 방 존재 여부 확인
+            {
+                return; // 대상 방이 없으면 정리 생략
+            }
+
+            room.UnlockConnectedDoors(); // 전투방이 아닌 특수 방의 실제 연결 Door를 항상 Open 상태로 동기화
+            Tilemap[] tilemaps = room.GetComponentsInChildren<Tilemap>(true); // 현재 특수 방의 모든 Tilemap 레이어 검색
+            foreach (Tilemap tilemap in tilemaps) // 특수 방 Tilemap 레이어 전체 순회
+            {
+                if (tilemap == null || tilemap.gameObject.name != "Obstacles") // Day18 프로토타입 Obstacles 레이어인지 확인
+                {
+                    continue; // Floor·Walls·Decoration은 그대로 유지
+                }
+
+                tilemap.ClearAllTiles(); // Day18에서 임시 배치한 Shop·Reward·Event 장애물 Tile을 현재 Room 인스턴스에서 제거
+                TilemapCollider2D obstacleCollider = tilemap.GetComponent<TilemapCollider2D>(); // 기존 장애물 Tilemap 물리 Collider 검색
+                if (obstacleCollider != null) // 장애물 Collider 존재 여부 확인
+                {
+                    obstacleCollider.enabled = false; // 남은 Collider 갱신 지연까지 포함해 특수 방 내부 투명벽을 즉시 비활성화
+                }
+            }
+
+            Physics2D.SyncTransforms(); // 장애물 제거와 Door Collider 상태 변경을 현재 Physics2D에 즉시 반영
         }
 
         private void EnsureCurrentRoomVisual() // 현재 방 비주얼 생성 메서드
@@ -375,60 +430,211 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
                 return; // 보상 방 실행 중단
             }
 
-            if (TryInvokeExistingController(rewardController, "OpenRoomReward", "OpenReward", "Open", "Show", "Begin", "PresentChoices")) // 기존 보상 컨트롤러 실행 성공 여부 확인
-            {
-                SetRoomRuntimeFlag(currentRoom, "RewardClaimed", true); // 외부 보상 컨트롤러 사용 시 중복 실행 방지 기록
-                ShowTransientMessage("보상 화면을 열었다."); // 외부 보상 실행 안내 표시
-                return; // 외부 보상 컨트롤러 사용 후 종료
-            }
-
-            OpenPanel(PanelMode.Reward); // 대체 보상 패널 열기
+            DisableLegacyRewardController(); // 전투 CombatCleared 구독형 기존 RewardController가 다시 살아나지 않도록 차단
+            OpenPanel(PanelMode.Reward); // Room 전용 보상 패널만 사용
         }
 
         private void TryOpenShopRoom() // 상점 방 실행 메서드
         {
-            if (TryInvokeExistingController(shopController, "OpenRoomShop", "OpenShop", "Open", "Show", "Begin", "OpenForCurrentRoom")) // 기존 상점 컨트롤러 실행 성공 여부 확인
+            if (TryOpenExistingShop()) // 기존 ShopController를 Room 상점으로 안전하게 열 수 있는지 확인
             {
                 ShowTransientMessage("상인과 거래를 시작했다."); // 외부 상점 실행 안내 표시
                 return; // 외부 상점 컨트롤러 사용 후 종료
             }
 
-            OpenPanel(PanelMode.ShopFallback); // 대체 상점 패널 열기
+            OpenPanel(PanelMode.ShopFallback); // 기존 상점 사용 불가 시 Room 전용 대체 상점 패널 열기
         }
 
-        private bool TryInvokeExistingController(MonoBehaviour target, params string[] methodNames) // 외부 컨트롤러 메서드 호출 메서드
+        private bool TryOpenExistingShop() // 기존 ShopController를 특수 Room에서 안전하게 여는 메서드
+        {
+            if (shopController == null) // 기존 상점 컨트롤러 존재 여부 확인
+            {
+                return false; // 기존 상점 사용 불가 반환
+            }
+
+            MethodInfo openMethod = FindInvokableMethod(shopController, "OpenRoomShop", "OpenShop", "Open", "Show", "Begin", "OpenForCurrentRoom"); // 활성화 전에 실제 호출 가능한 상점 오픈 메서드 검색
+            if (openMethod == null) // 실행 가능한 상점 오픈 메서드 존재 여부 확인
+            {
+                return false; // 메서드가 없으면 컴포넌트를 켜지 않고 대체 상점 사용
+            }
+
+            externalControllerWasEnabled = shopController.enabled; // 상점 열기 전 컴포넌트 활성 상태 저장
+            externalGameObjectWasActive = shopController.gameObject.activeSelf; // 상점 열기 전 GameObject 활성 상태 저장
+            if (!shopController.gameObject.activeSelf) // 상점 GameObject 비활성 상태 여부 확인
+            {
+                shopController.gameObject.SetActive(true); // 상점 오픈 호출을 위해 GameObject 임시 활성화
+            }
+
+            shopController.enabled = true; // 실제 오픈 메서드가 존재할 때만 기존 상점 컴포넌트 활성화
+            try // 반사 호출 실패 시 입력 잠금이 남지 않도록 예외 보호
+            {
+                InvokeControllerMethod(shopController, openMethod); // 검색된 상점 오픈 메서드 실행
+            }
+            catch (Exception exception) // 기존 상점 실행 중 예외 처리
+            {
+                Debug.LogWarning($"[Project Q] Existing ShopController open failed: {exception.Message}"); // 상점 실행 실패 로그 출력
+                RestoreExternalControllerOriginalState(); // 상점 열기 전 컴포넌트 상태 복구
+                RestorePlayerControlSafety(); // 실행 도중 잠긴 플레이어 조작 안전 복구
+                return false; // 대체 상점 패널 사용 요청
+            }
+
+            object shopActiveValue = ReadFieldOrProperty(shopController, "ShopActive"); // 실제 상점 활성 상태 조회
+            if (shopActiveValue is bool shopActive && !shopActive) // 상품 없음 등으로 상점이 즉시 닫힌 상태인지 확인
+            {
+                RestoreExternalControllerOriginalState(); // 열린 화면이 없으면 기존 비활성 상태로 복귀
+                RestorePlayerControlSafety(); // 빈 상점 흐름에서 이동 잠금이 남지 않도록 보장
+                return false; // Room 대체 상점 패널로 전환
+            }
+
+            activeExternalController = shopController; // ESC와 방 이동 시 닫을 외부 상점 추적 시작
+            return true; // 기존 상점 정상 개방 반환
+        }
+
+        private MethodInfo FindInvokableMethod(MonoBehaviour target, params string[] methodNames) // 매개변수 호환 외부 메서드 검색 메서드
         {
             if (target == null) // 대상 컨트롤러 존재 여부 확인
             {
-                return false; // 컨트롤러 호출 실패 반환
+                return null; // 검색 실패 반환
             }
 
-            target.gameObject.SetActive(true); // 비활성 GameObject를 강제로 활성화
-            target.enabled = true; // 비활성 컴포넌트를 강제로 활성화
             Type targetType = target.GetType(); // 대상 컨트롤러 타입 저장
-            foreach (string methodName in methodNames) // 시도할 메서드 이름 전체 순회
+            foreach (string methodName in methodNames) // 후보 메서드 이름 전체 순회
             {
-                MethodInfo method = targetType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic); // 현재 메서드 검색
+                MethodInfo method = targetType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic); // 현재 이름 메서드 검색
                 if (method == null) // 메서드 존재 여부 확인
                 {
-                    continue; // 다음 후보 메서드로 이동
+                    continue; // 다음 후보 검색
                 }
 
                 ParameterInfo[] parameters = method.GetParameters(); // 현재 메서드 매개변수 목록 조회
                 if (parameters.Length == 0) // 매개변수 없는 메서드 여부 확인
                 {
-                    method.Invoke(target, null); // 간단한 오픈 메서드 호출
-                    return true; // 호출 성공 반환
+                    return method; // 바로 호출 가능한 메서드 반환
                 }
 
-                if (parameters.Length == 1 && parameters[0].ParameterType == typeof(RoomController)) // 현재 방 하나만 받는 메서드 여부 확인
+                if (parameters.Length == 1 && parameters[0].ParameterType == typeof(RoomController)) // 현재 Room 하나를 받는 메서드 여부 확인
                 {
-                    method.Invoke(target, new object[] { currentRoom }); // 현재 방 전달 방식 메서드 호출
-                    return true; // 호출 성공 반환
+                    return method; // Room 전달 방식 메서드 반환
                 }
             }
 
-            return false; // 실행 가능한 메서드를 찾지 못했음을 반환
+            return null; // 호환 메서드 검색 실패 반환
+        }
+
+        private void InvokeControllerMethod(MonoBehaviour target, MethodInfo method) // 검색된 외부 컨트롤러 메서드 실행 메서드
+        {
+            ParameterInfo[] parameters = method.GetParameters(); // 실행 메서드 매개변수 목록 조회
+            if (parameters.Length == 0) // 매개변수 없는 메서드 여부 확인
+            {
+                method.Invoke(target, null); // 매개변수 없이 메서드 실행
+                return; // 실행 완료
+            }
+
+            object[] arguments = // 현재 Room 전달용 반사 호출 인자 배열 생성
+            {
+                currentRoom // 현재 Room 인자 저장
+            };
+            method.Invoke(target, arguments); // 현재 Room을 전달해 외부 메서드 실행
+        }
+
+        private bool IsExternalControllerActive() // 현재 추적 중 외부 상점이 실제로 열린 상태인지 확인 메서드
+        {
+            if (activeExternalController == null) // 추적 중 외부 컨트롤러 존재 여부 확인
+            {
+                return false; // 열린 외부 화면 없음 반환
+            }
+
+            object activeValue = ReadFieldOrProperty(activeExternalController, "ShopActive"); // 기존 ShopController 활성 속성 조회
+            if (activeValue is bool active) // ShopActive 값을 정상 조회했는지 확인
+            {
+                return active; // 실제 상점 활성 상태 반환
+            }
+
+            return activeExternalController.enabled; // 활성 속성이 없으면 컴포넌트 활성 상태를 대체 기준으로 사용
+        }
+
+        private void CloseExternalController(bool restoreInput) // RoomContentDirector가 연 외부 상점 정상 종료 메서드
+        {
+            if (activeExternalController == null) // 닫을 외부 상점 존재 여부 확인
+            {
+                return; // 외부 상점 종료 처리 생략
+            }
+
+            MonoBehaviour target = activeExternalController; // 상태 정리 중 참조 유지를 위해 대상 저장
+            MethodInfo closeMethod = FindInvokableMethod(target, "CloseRoomShop", "CloseShop", "Close", "Hide", "End", "ForceCloseWithoutResolve"); // 기존 상점 종료 메서드 검색
+            if (closeMethod != null) // 정상 종료 메서드 존재 여부 확인
+            {
+                try // 기존 상점 종료 예외 보호
+                {
+                    InvokeControllerMethod(target, closeMethod); // ShopController.CloseShop 계열 메서드 실행
+                }
+                catch (Exception exception) // 외부 상점 종료 중 예외 처리
+                {
+                    Debug.LogWarning($"[Project Q] Existing ShopController close failed: {exception.Message}"); // 종료 실패 로그 출력
+                }
+            }
+
+            FinishExternalControllerTracking(restoreInput); // 추적 상태와 원래 컴포넌트 상태 복구
+        }
+
+        private void FinishExternalControllerTracking(bool restoreInput) // 외부 상점 추적 종료와 상태 복구 메서드
+        {
+            RestoreExternalControllerOriginalState(); // 상점 열기 전 컴포넌트 활성 상태 복구
+            activeExternalController = null; // 현재 외부 상점 추적 참조 초기화
+            if (restoreInput) // 플레이어 조작 복구 필요 여부 확인
+            {
+                RestorePlayerControlSafety(); // 이동·회피·카드·조준 입력 안전 복구
+            }
+        }
+
+        private void RestoreExternalControllerOriginalState() // 외부 상점 컴포넌트 원래 활성 상태 복구 메서드
+        {
+            MonoBehaviour target = activeExternalController != null ? activeExternalController : shopController; // 현재 추적 대상 또는 기존 상점 참조 선택
+            if (target == null) // 복구 대상 존재 여부 확인
+            {
+                return; // 외부 상점 상태 복구 생략
+            }
+
+            target.enabled = externalControllerWasEnabled; // 상점 열기 전 컴포넌트 활성 상태 복구
+            if (!externalGameObjectWasActive && target.gameObject.activeSelf) // 원래 비활성 GameObject였는지 확인
+            {
+                target.gameObject.SetActive(false); // 임시 활성화한 상점 GameObject 원래 상태로 복구
+            }
+        }
+
+        private void DisableLegacyRewardController() // Room 탐색과 충돌하는 기존 전투 자동 보상 시스템 비활성화 메서드
+        {
+            if (rewardController == null) // 기존 보상 컨트롤러 존재 여부 확인
+            {
+                return; // 비활성 처리 생략
+            }
+
+            rewardController.enabled = false; // CombatCleared 자동 구독형 RewardController 비활성 상태 유지
+        }
+
+        private void RestorePlayerControlSafety() // 특수 Room 종료 후 남을 수 있는 플레이어 조작 잠금 안전 복구 메서드
+        {
+            if (playerTransform == null) // 플레이어 Transform 존재 여부 확인
+            {
+                return; // 조작 복구 처리 생략
+            }
+
+            MonoBehaviour[] behaviours = playerTransform.GetComponentsInChildren<MonoBehaviour>(true); // 플레이어 하위 조작 컴포넌트 전체 검색
+            foreach (MonoBehaviour behaviour in behaviours) // 전체 플레이어 컴포넌트 순회
+            {
+                if (behaviour == null) // 현재 컴포넌트 유효 여부 확인
+                {
+                    continue; // 무효 항목 건너뛰기
+                }
+
+                string typeName = behaviour.GetType().Name; // 현재 플레이어 컴포넌트 타입 이름 조회
+                if (typeName != "PlayerMovement" && !blockedComponentNames.Contains(typeName)) // 특수 Room에서 잠글 수 있는 조작 컴포넌트인지 확인
+                {
+                    continue; // 복구 대상이 아닌 컴포넌트 유지
+                }
+
+                behaviour.enabled = true; // Shop·Reward·Rest·Event 종료 후 기본 조작 활성 상태 보장
+            }
         }
 
         private void OpenPanel(PanelMode mode) // 내부 패널 열기 메서드
@@ -863,7 +1069,11 @@ namespace ProjectQ.Rooms // 방 콘텐츠 시스템 네임스페이스
                 return false; // 메서드 부재 시 실패 반환
             }
 
-            object result = method.Invoke(runResources, new object[] { amount }); // 금화 소비 메서드 호출
+            object[] arguments = // 금화 소비 메서드 전달 인자 배열 생성
+            {
+                amount // 소비할 금화량 저장
+            };
+            object result = method.Invoke(runResources, arguments); // 금화 소비 메서드 호출
             if (method.ReturnType == typeof(bool)) // 반환형 bool 여부 확인
             {
                 return result is bool boolResult && boolResult; // bool 결과 반환

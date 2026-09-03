@@ -126,6 +126,18 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             BeginCombat(); // 새 전투 즉시 시작
         }
 
+        public void ResetToIdle() // Room 탐색 복귀용 전투 상태 초기화 메서드
+        {
+            if (state == CombatState.Combat) // 실제 전투 진행 중인지 확인
+            {
+                return; // 진행 중 전투를 탐색 상태로 강제 종료하지 않음
+            }
+
+            hasSpawnedEnemies = false; // 이전 전투 적 생성 기록 초기화
+            ReleaseEnemyProjectiles(); // 남아 있을 수 있는 적 탄환 정리
+            ChangeState(CombatState.Idle); // Clear·Reward·Failed 상태를 탐색 대기로 복구
+        }
+
         private void CompleteCombat() // 전투 클리어 처리 메서드
         {
             ReleaseEnemyProjectiles(); // 남아 있는 모든 적 탄환 즉시 정리
