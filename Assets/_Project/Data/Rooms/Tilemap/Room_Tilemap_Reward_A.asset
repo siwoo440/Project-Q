@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 230c4e30165049af9233ffd28478e17e, type: 3}
-  m_Name: Room_Tilemap_Combat_B
+  m_Name: Room_Tilemap_Reward_A
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomData
-  id: room_tilemap_combat_b
-  displayName: "\uC804\uD22C \uAD6C\uC5ED B"
-  roomType: 1
-  roomSizeType: 1
-  roomPrefab: {fileID: 8314986667913235418, guid: b6df45dea2cf71f47a2ddfc12de5aa4f, type: 3}
+  id: room_tilemap_reward_a
+  displayName: "\uBCF4\uC0C1 \uAD6C\uC5ED"
+  roomType: 3
+  roomSizeType: 0
+  roomPrefab: {fileID: 4449656687762325175, guid: e746b197fe7c94643989ad040c0a2757, type: 3}

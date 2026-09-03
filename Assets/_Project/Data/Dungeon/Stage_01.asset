@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 550e33b4e9a7445687d6e507355e73dc, type: 3}
+  m_Name: Stage_01
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.StageData
+  stageId: stage_01
+  displayName: "1\uB2E8\uACC4"
+  generationSettings: {fileID: 11400000, guid: cb2c5b6efd5b1d0409f854d6d05012c6, type: 2}
+  roomCatalog: {fileID: 11400000, guid: d876798a0f0d93c4199af204fe375a93, type: 2}
+  eliteRoomCount: 1
+  shopRoomCount: 1
+  restRoomCount: 1
+  rewardRoomCount: 1
+  eventRoomCount: 1
+  minimumSpecialDistance: 2
+  eliteDistanceRatio: 0.5

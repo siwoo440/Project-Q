@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DungeonGenerationSettings
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.DungeonGenerationSettings
   useRandomSeed: 1
-  fixedSeed: 1701
+  fixedSeed: 1801
   targetRoomCount: 12
   minimumFarthestDistance: 5
   minimumBranchRoomCount: 2

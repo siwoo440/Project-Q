@@ -2336,74 +2336,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 374960773}
   m_CullTransparentMesh: 1
---- !u!1 &443957794
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 443957797}
-  - component: {fileID: 443957796}
-  - component: {fileID: 443957795}
-  m_Layer: 0
-  m_Name: DungeonSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &443957795
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 443957794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79d9e901f1c94255985724e001677ed3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.DungeonGenerator
-  settings: {fileID: 11400000, guid: cb2c5b6efd5b1d0409f854d6d05012c6, type: 2}
-  roomCatalog: {fileID: 11400000, guid: d876798a0f0d93c4199af204fe375a93, type: 2}
-  roomManager: {fileID: 443957796}
-  generatedRoot: {fileID: 0}
---- !u!114 &443957796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 443957794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fdb8bb05a38443c5a65c8bbe738e6c86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomManager
-  rooms: []
-  startRoom: {fileID: 0}
-  playerMovement: {fileID: 1087613225}
-  playerDodge: {fileID: 1087613223}
-  playerBody: {fileID: 1087613228}
-  roomCamera: {fileID: 368684566}
-  transitionLockDuration: 0.18
---- !u!4 &443957797
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 443957794}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &502978786
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2556,6 +2488,75 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2, y: 56}
   m_EdgeRadius: 0
+--- !u!1 &520812093
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 520812096}
+  - component: {fileID: 520812095}
+  - component: {fileID: 520812094}
+  m_Layer: 0
+  m_Name: DungeonSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &520812094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79d9e901f1c94255985724e001677ed3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.DungeonGenerator
+  stageData: {fileID: 11400000, guid: d664fe7fe6594cd48aa281f69e243587, type: 2}
+  settings: {fileID: 11400000, guid: cb2c5b6efd5b1d0409f854d6d05012c6, type: 2}
+  roomCatalog: {fileID: 11400000, guid: d876798a0f0d93c4199af204fe375a93, type: 2}
+  roomManager: {fileID: 520812095}
+  generatedRoot: {fileID: 0}
+--- !u!114 &520812095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdb8bb05a38443c5a65c8bbe738e6c86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomManager
+  rooms: []
+  startRoom: {fileID: 0}
+  playerMovement: {fileID: 1087613225}
+  playerDodge: {fileID: 1087613223}
+  playerBody: {fileID: 1087613228}
+  roomCamera: {fileID: 368684566}
+  transitionLockDuration: 0.18
+--- !u!4 &520812096
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0
@@ -8822,4 +8823,4 @@ SceneRoots:
   - {fileID: 243129301}
   - {fileID: 1014792545}
   - {fileID: 1672061904}
-  - {fileID: 443957797}
+  - {fileID: 520812096}

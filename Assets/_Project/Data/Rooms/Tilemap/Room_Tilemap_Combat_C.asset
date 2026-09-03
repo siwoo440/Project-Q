@@ -15,5 +15,5 @@ MonoBehaviour:
   id: room_tilemap_combat_c
   displayName: "\uC804\uD22C \uAD6C\uC5ED C"
   roomType: 1
-  roomSizeType: 0
+  roomSizeType: 2
   roomPrefab: {fileID: 6297601587844478989, guid: 7b0f704e30a031d49a373bf8d1b5dcbf, type: 3}

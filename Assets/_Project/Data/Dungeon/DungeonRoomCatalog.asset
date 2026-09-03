@@ -17,3 +17,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9d42bbf21ef8564688a22f8aad9c4bb, type: 2}
   - {fileID: 11400000, guid: 0ebba3162bbb19340bca1a012ef55245, type: 2}
   - {fileID: 11400000, guid: f841ac3c65b825d48a1cc42d607ca934, type: 2}
+  eliteRooms:
+  - {fileID: 11400000, guid: 1248298794486a34495c8d3d19d32bb3, type: 2}
+  rewardRooms:
+  - {fileID: 11400000, guid: fd694beb369748d4481cb485d4d3ce9d, type: 2}
+  shopRooms:
+  - {fileID: 11400000, guid: 66108e43624f48e4e867450120ebbf2a, type: 2}
+  eventRooms:
+  - {fileID: 11400000, guid: fb25ed5ca5aa4024fb6f938246f3914d, type: 2}
+  restRooms:
+  - {fileID: 11400000, guid: 917cc2bf9136ff14886950836b7b3035, type: 2}
+  bossRooms:
+  - {fileID: 11400000, guid: 922738bd5bdf9d747b174d1be0b3e0bb, type: 2}
