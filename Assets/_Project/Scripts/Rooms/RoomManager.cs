@@ -205,7 +205,7 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             if (playerBody != null) // 플레이어 Rigidbody2D 존재 여부 확인
             {
                 playerBody.linearVelocity = Vector2.zero; // Door 이동 전 기존 이동 속도 제거
-                playerBody.angularVelocity = 0f; // Door 이동 전 회전 속도 제거
+                playerBody.angularVelocity = 0f; // Door 이동 전 기존 회전 속도 제거
                 playerBody.position = entryAnchor.position; // 대상 구역 반대 Door EntryAnchor 위치로 플레이어 이동
             }
             else if (playerMovement != null) // Rigidbody2D가 없고 플레이어 Transform은 존재하는지 확인
@@ -214,19 +214,18 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             }
 
             Physics2D.SyncTransforms(); // 위치 변경을 현재 프레임 2D Physics 상태에 즉시 반영
-            SetCurrentRoom(targetRoom, true); // 대상 Room을 CurrentRoom으로 갱신하고 카메라 즉시 전환
-            yield return new WaitForSeconds(Mathf.Max(0.01f, transitionLockDuration)); // Door Trigger 밖으로 안정적으로 벗어날 때까지 짧은 재진입 잠금 유지
-
             if (playerMovement != null) // 플레이어 이동 컴포넌트 존재 여부 확인
             {
-                playerMovement.enabled = movementWasEnabled; // 구역 전환 전 이동 활성 상태 복구
+                playerMovement.enabled = movementWasEnabled; // 새 Room 이벤트 전에 전환용 이동 잠금만 원래 상태로 복구
             }
 
             if (playerDodge != null) // 플레이어 회피 컴포넌트 존재 여부 확인
             {
-                playerDodge.enabled = dodgeWasEnabled; // 구역 전환 전 회피 활성 상태 복구
+                playerDodge.enabled = dodgeWasEnabled; // 새 Room 이벤트 전에 전환용 회피 잠금만 원래 상태로 복구
             }
 
+            SetCurrentRoom(targetRoom, true); // 특수방·전투방 구독자가 최종 입력 상태를 결정하도록 현재 Room 변경 이벤트 전달
+            yield return new WaitForSeconds(Mathf.Max(0.01f, transitionLockDuration)); // 입력 상태를 다시 덮어쓰지 않고 Door 재진입 잠금만 짧게 유지
             transitionState = RoomTransitionState.Idle; // 다음 Door 이동을 받을 수 있는 상태로 복귀
         }
     }
