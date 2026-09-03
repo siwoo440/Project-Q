@@ -23919,6 +23919,7 @@ GameObject:
   - component: {fileID: 4617275953175830315}
   - component: {fileID: 5098512981714497736}
   - component: {fileID: 7737880741467567369}
+  - component: {fileID: 1726484951473203036}
   m_Layer: 0
   m_Name: Room_Tilemap_Boss_A
   m_TagString: Untagged
@@ -24000,6 +24001,25 @@ MonoBehaviour:
   legacyFloorRenderer: {fileID: 0}
   normalFloorColor: {r: 0.82, g: 0.82, b: 0.9, a: 1}
   currentFloorColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &1726484951473203036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3487326532632603968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db5186a8d5ef4798ba5e71d1c6000554, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomShapeRuntimeLayout
+  roomController: {fileID: 0}
+  tilemapTemplate: {fileID: 0}
+  armHalfWidth: 4
+  centerHalfSize: 5
+  clearObstacleTiles: 1
+  clearDecorationTiles: 1
+  hideUnusedDoors: 1
 --- !u!1 &3666365969318347698
 GameObject:
   m_ObjectHideFlags: 0

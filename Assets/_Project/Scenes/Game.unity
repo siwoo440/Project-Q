@@ -2365,6 +2365,7 @@ GameObject:
   - component: {fileID: 520812098}
   - component: {fileID: 520812099}
   - component: {fileID: 520812100}
+  - component: {fileID: 520812101}
   m_Layer: 0
   m_Name: DungeonSystem
   m_TagString: Untagged
@@ -2521,6 +2522,20 @@ MonoBehaviour:
   roomManager: {fileID: 520812095}
   validateOnStart: 1
   validateOnRoomChanged: 1
+--- !u!114 &520812101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a20f04cdda0d480da7d63e3986bb812b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomTemplateIntegrationValidator
+  roomManager: {fileID: 520812095}
+  validateOnStart: 1
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0

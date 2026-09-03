@@ -9,21 +9,21 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
         public const float EntryInset = 4f; // 플레이어 Collider가 외곽 Wall과 겹치지 않도록 Door에서 Room 안쪽으로 충분히 떨어진 진입 거리
         public const int DoorApproachWidth = 10; // Door 중심 기준 좌우·상하 장애물 금지 통로 폭
         public const int DoorApproachDepth = 8; // Door 경계에서 Room 안쪽으로 확보할 장애물 금지 통로 깊이
-        public const float DungeonCellWidth = 72f; // 가장 넓은 64유닛 Room과 여백을 수용할 고정 Dungeon Cell 가로 간격
-        public const float DungeonCellHeight = 44f; // 가장 높은 36유닛 Room과 여백을 수용할 고정 Dungeon Cell 세로 간격
+        public const float DungeonCellWidth = 112f; // 가장 넓은 88유닛 Room과 충분한 비가시 여백을 수용할 고정 Dungeon Cell 가로 간격
+        public const float DungeonCellHeight = 72f; // 가장 높은 52유닛 Room과 충분한 비가시 여백을 수용할 고정 Dungeon Cell 세로 간격
 
         public static Vector2 GetBoundsSize(RoomSizeType sizeType) // RoomSizeType별 확대된 Tilemap 구역 실제 크기 반환 메서드
         {
             switch (sizeType) // 논리 Room 크기별 실제 크기 분기
             {
                 case RoomSizeType.Wide: // 가로형 Room 처리
-                    return new Vector2(64f, 28f); // 넓은 전투·Elite용 64×28 Room 반환
+                    return new Vector2(88f, 40f); // 넓은 전투·Elite용 88×40 확장 Room 반환
                 case RoomSizeType.Tall: // 세로형 Room 처리
-                    return new Vector2(48f, 36f); // 세로형 전투·Event용 48×36 Room 반환
+                    return new Vector2(72f, 52f); // 세로형 전투·Event용 72×52 확장 Room 반환
                 case RoomSizeType.Large: // 대형 Room 처리
-                    return new Vector2(64f, 36f); // Boss용 64×36 대형 Room 반환
+                    return new Vector2(88f, 52f); // Boss용 88×52 확장 대형 Room 반환
                 default: // 기본 Small Room 처리
-                    return new Vector2(48f, 28f); // 기본 탐험·전투용 48×28 Room 반환
+                    return new Vector2(72f, 40f); // 기본 탐험·전투용 72×40 확장 Room 반환
             }
         }
 

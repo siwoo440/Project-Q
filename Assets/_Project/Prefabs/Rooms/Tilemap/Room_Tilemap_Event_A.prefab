@@ -1575,6 +1575,7 @@ GameObject:
   - component: {fileID: 8486597388773102882}
   - component: {fileID: 1615491790749833858}
   - component: {fileID: 3688126951098607017}
+  - component: {fileID: 3001458596471415653}
   m_Layer: 0
   m_Name: Room_Tilemap_Event_A
   m_TagString: Untagged
@@ -1656,6 +1657,25 @@ MonoBehaviour:
   legacyFloorRenderer: {fileID: 0}
   normalFloorColor: {r: 0.82, g: 0.82, b: 0.9, a: 1}
   currentFloorColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &3001458596471415653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5912475108853013244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db5186a8d5ef4798ba5e71d1c6000554, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomShapeRuntimeLayout
+  roomController: {fileID: 0}
+  tilemapTemplate: {fileID: 0}
+  armHalfWidth: 4
+  centerHalfSize: 5
+  clearObstacleTiles: 1
+  clearDecorationTiles: 1
+  hideUnusedDoors: 1
 --- !u!1 &6611064788767976344
 GameObject:
   m_ObjectHideFlags: 0

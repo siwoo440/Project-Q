@@ -15,7 +15,9 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
         [SerializeField] private Rigidbody2D playerBody; // 플레이어 실제 위치와 속도 변경 참조
         [SerializeField] private RoomCameraController roomCamera; // 현재 구역 Bounds 카메라 참조
         [SerializeField] private float transitionLockDuration = 0.18f; // 이동 직후 역방향 Door 재진입 방지 시간
+        [SerializeField] private bool hideInactiveRooms = true; // 현재 Room 외 다른 Room 렌더링 숨김 여부
         private readonly Dictionary<Vector2Int, RoomController> roomByCoordinate = new Dictionary<Vector2Int, RoomController>(); // 격자 좌표별 Room 빠른 검색 목록
+        private readonly Dictionary<Renderer, bool> rendererEnabledStates = new Dictionary<Renderer, bool>(); // Room Renderer 원래 활성 상태 보존 목록
         private RoomController currentRoom; // 현재 플레이어가 위치한 논리적 구역
         private RoomTransitionState transitionState = RoomTransitionState.Idle; // 현재 Door 전환 처리 상태
         private bool initializedByGenerator; // DungeonGenerator가 런타임 Room 등록을 완료했는지 여부
@@ -96,6 +98,7 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
         public void RegisterRooms() // 현재 Room 배열을 좌표별 검색 목록에 등록하는 메서드
         {
             roomByCoordinate.Clear(); // 기존 좌표별 Room 검색 목록 초기화
+            rendererEnabledStates.Clear(); // 새 Dungeon 기준 Renderer 원래 활성 상태 목록 초기화
             if (rooms == null) // 전체 Room 배열 존재 여부 확인
             {
                 return; // Room 등록 처리 중단
@@ -110,6 +113,7 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
 
                 roomByCoordinate[room.Coordinate] = room; // 현재 Room을 격자 좌표 기준 검색 목록에 등록
                 room.SetManager(this); // 현재 Room이 Door 이동 요청에 사용할 RoomManager 연결
+                CacheRoomRendererStates(room); // 숨김 전 현재 Room Renderer 원래 활성 상태 저장
                 if (room.Visual != null) // 현재 Room 시각 컨트롤러 존재 여부 확인
                 {
                     room.Visual.SetCurrent(false); // 등록 시 모든 Room을 비현재 방 기본 색상으로 초기화
@@ -183,6 +187,62 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             if (previous != currentRoom) // 실제 현재 구역이 변경됐는지 확인
             {
                 CurrentRoomChanged?.Invoke(previous, currentRoom); // 이전 구역과 새 구역 변경 이벤트 전달
+            }
+
+            RefreshRoomVisibility(); // 현재 Room만 보이도록 전체 Room Renderer 상태 갱신
+        }
+
+        private void CacheRoomRendererStates(RoomController room) // 단일 Room Renderer 원래 활성 상태 저장 메서드
+        {
+            if (room == null) // 저장 대상 Room 존재 여부 확인
+            {
+                return; // Renderer 상태 저장 중단
+            }
+
+            Renderer[] roomRenderers = room.GetComponentsInChildren<Renderer>(true); // 비활성 자식까지 포함한 Room Renderer 전체 검색
+            foreach (Renderer renderer in roomRenderers) // 현재 Room Renderer 전체 순회
+            {
+                if (renderer == null || rendererEnabledStates.ContainsKey(renderer)) // 유효 Renderer와 기존 저장 여부 확인
+                {
+                    continue; // 잘못된 Renderer 또는 중복 저장 생략
+                }
+
+                rendererEnabledStates.Add(renderer, renderer.enabled); // 현재 Renderer 원래 활성 상태 저장
+            }
+        }
+
+        private void RefreshRoomVisibility() // CurrentRoom 기준 전체 Room 렌더링 표시 상태 갱신 메서드
+        {
+            foreach (RoomController room in roomByCoordinate.Values) // 등록된 Dungeon Room 전체 순회
+            {
+                if (room == null) // 유효 Room 여부 확인
+                {
+                    continue; // 잘못된 Room 표시 처리 생략
+                }
+
+                bool visible = room == currentRoom; // 현재 플레이어가 위치한 Room 여부 계산
+                Renderer[] roomRenderers = room.GetComponentsInChildren<Renderer>(true); // 현재 Room의 모든 Renderer 검색
+                foreach (Renderer renderer in roomRenderers) // 현재 Room Renderer 전체 순회
+                {
+                    if (renderer == null) // 유효 Renderer 여부 확인
+                    {
+                        continue; // 잘못된 Renderer 표시 처리 생략
+                    }
+
+                    if (!rendererEnabledStates.TryGetValue(renderer, out bool originallyEnabled)) // 런타임 추가 Renderer 원래 상태 저장 여부 확인
+                    {
+                        originallyEnabled = renderer.enabled; // 현재 활성 상태를 새 Renderer 원래 상태로 사용
+                        rendererEnabledStates[renderer] = originallyEnabled; // 런타임 추가 Renderer 상태 목록 등록
+                    }
+
+                    if (!hideInactiveRooms) // 다른 Room 숨김 기능 비활성 여부 확인
+                    {
+                        renderer.enabled = originallyEnabled; // 숨김 기능 비활성 시 원래 Renderer 상태 복원
+                        continue; // 현재 Renderer 표시 처리 완료
+                    }
+
+                    renderer.enabled = visible && originallyEnabled; // 현재 Room의 원래 활성 Renderer만 화면에 표시
+                }
             }
         }
 
