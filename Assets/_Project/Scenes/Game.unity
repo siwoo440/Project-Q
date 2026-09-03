@@ -2500,6 +2500,7 @@ GameObject:
   - component: {fileID: 520812095}
   - component: {fileID: 520812094}
   - component: {fileID: 520812097}
+  - component: {fileID: 520812098}
   m_Layer: 0
   m_Name: DungeonSystem
   m_TagString: Untagged
@@ -2581,6 +2582,42 @@ MonoBehaviour:
   normalBaseEnemyCount: 3
   eliteBonusEnemyCount: 2
   maximumEnemyCount: 8
+--- !u!114 &520812098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f8a1c39a9104e7f98d6bb9a9dc60120, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomContentDirector
+  roomManager: {fileID: 520812095}
+  playerTransform: {fileID: 1087613222}
+  playerStats: {fileID: 1087613229}
+  rewardController: {fileID: 147592841}
+  shopController: {fileID: 1014792543}
+  shopSprite: {fileID: -7328332187781180401, guid: 5980171d1273f6348a3ad053cdd2052f, type: 3}
+  rewardSprite: {fileID: 5039610937180769370, guid: 5a01a318c4da2a24da2746963fd83fde, type: 3}
+  restSprite: {fileID: 663029846402673482, guid: 6292b76b296c2ce4f949f2bcbc4ce1a7, type: 3}
+  eventSprite: {fileID: -6726099478809319801, guid: 11f1cb0e9c1e50d4f89e4fc18cb50d90, type: 3}
+  interactionDistance: 2.6
+  shopVisualScale: 1.1
+  rewardVisualScale: 1
+  restVisualScale: 0.95
+  eventVisualScale: 0.82
+  rewardHealAmount: 20
+  rewardShieldAmount: 30
+  rewardManaAmount: 25
+  restHealPercent: 35
+  eventHealthSacrifice: 15
+  eventManaRegenBonus: 2
+  eventShieldBonus: 20
+  shopHealCost: 30
+  shopShieldCost: 35
+  shopManaCost: 45
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0
@@ -4120,7 +4157,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1014792542}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306e59605d9349c0a786e8fcfb02fe86, type: 3}
   m_Name: 

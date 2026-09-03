@@ -14,6 +14,9 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         private GameObject owner; // 발사 주체
         private float lifeRemaining; // 남은 수명
         private ProjectilePool pool; // 반환 대상 풀
+        private const string PlayerLayerName = "Player"; // 플레이어 이동 본체 레이어 이름
+        private const string PlayerHitboxLayerName = "PlayerHitbox"; // 플레이어 탄막 피격 레이어 이름
+        private const string EnemyProjectileLayerName = "EnemyProjectile"; // 적 탄환 레이어 이름
         private ProjectileBase poolPrefab; // 원본 프리팹
         private ProjectileCardModifier cardModifier; // 카드 특수 보정
 
@@ -63,6 +66,21 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             Despawn(); // 투사체 반환 또는 제거
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] // 씬 로드 전 탄환 레이어 충돌 규칙 적용
+        private static void ConfigureProjectileLayerCollisions() // 적 탄환과 플레이어 Collider 충돌 규칙 설정 메서드
+        {
+            int playerLayer = LayerMask.NameToLayer(PlayerLayerName); // 플레이어 이동 본체 레이어 번호 조회
+            int playerHitboxLayer = LayerMask.NameToLayer(PlayerHitboxLayerName); // 플레이어 작은 피격 레이어 번호 조회
+            int enemyProjectileLayer = LayerMask.NameToLayer(EnemyProjectileLayerName); // 적 탄환 레이어 번호 조회
+            if (playerLayer < 0 || playerHitboxLayer < 0 || enemyProjectileLayer < 0) // 필수 레이어 존재 여부 확인
+            {
+                return; // 레이어 누락 시 기존 프로젝트 설정 유지
+            }
+
+            Physics2D.IgnoreLayerCollision(enemyProjectileLayer, playerLayer, true); // 적 탄환과 큰 플레이어 이동 Collider 충돌 차단
+            Physics2D.IgnoreLayerCollision(enemyProjectileLayer, playerHitboxLayer, false); // 적 탄환과 작은 PlayerHitbox Trigger 충돌 허용
+        }
+
         private void Awake() // 투사체 초기화
         {
             CacheBody(); // 물리 바디 준비
@@ -91,6 +109,11 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 충돌 처리 생략
             }
 
+            if (IsIgnoredPlayerBodyCollider(other)) // 적 탄환이 플레이어 이동용 큰 Collider와 접촉했는지 확인
+            {
+                return; // 큰 이동 Collider는 탄막 피격 판정에서 완전히 제외
+            }
+
             if (TryHandlePlayerHit(other)) // 플레이어 작은 Hitbox 충돌인지 확인하고 피해 적용 시도
             {
                 return; // 플레이어 계층 충돌은 일반 피해 대상 검색에서 제외
@@ -116,7 +139,28 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 return; // 지속 충돌 처리 생략
             }
 
+            if (IsIgnoredPlayerBodyCollider(other)) // 적 탄환이 플레이어 이동용 큰 Collider와 계속 겹치는지 확인
+            {
+                return; // 큰 이동 Collider의 지속 충돌은 피격 판정에서 제외
+            }
+
             TryHandlePlayerHit(other); // 최초 Enter가 누락되어도 실제 작은 Hitbox와 겹치면 피해 적용 재시도
+        }
+
+        private bool IsIgnoredPlayerBodyCollider(Collider2D other) // 적 탄환과 플레이어 이동 Collider 충돌 제외 확인 메서드
+        {
+            if (Faction != CombatFaction.Enemy || other == null) // 적 탄환과 유효 Collider 여부 확인
+            {
+                return false; // 플레이어 본체 무시 대상 아님 반환
+            }
+
+            int playerLayer = LayerMask.NameToLayer(PlayerLayerName); // 플레이어 이동 본체 레이어 번호 조회
+            if (playerLayer < 0) // 플레이어 레이어 존재 여부 확인
+            {
+                return false; // 레이어 누락 시 기존 충돌 처리 유지
+            }
+
+            return other.gameObject.layer == playerLayer; // Player 레이어 Collider만 큰 이동 본체로 판정
         }
 
         private bool TryHandlePlayerHit(Collider2D other) // 플레이어 계층 충돌을 작은 PlayerHitbox 기준으로 처리하는 메서드
