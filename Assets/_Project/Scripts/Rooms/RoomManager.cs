@@ -18,6 +18,7 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
         private readonly Dictionary<Vector2Int, RoomController> roomByCoordinate = new Dictionary<Vector2Int, RoomController>(); // 격자 좌표별 Room 빠른 검색 목록
         private RoomController currentRoom; // 현재 플레이어가 위치한 논리적 구역
         private RoomTransitionState transitionState = RoomTransitionState.Idle; // 현재 Door 전환 처리 상태
+        private bool initializedByGenerator; // DungeonGenerator가 런타임 Room 등록을 완료했는지 여부
 
         public event Action<RoomController, RoomController> CurrentRoomChanged; // 이전 구역과 새 구역 변경 이벤트
         public RoomController CurrentRoom => currentRoom; // 현재 활성 논리 구역 반환
@@ -35,10 +36,60 @@ namespace ProjectQ.Rooms // 구역 시스템 네임스페이스
             roomCamera = cameraController; // 구역 카메라 컨트롤러 참조 저장
         }
 
-        private void Start() // 수동 테스트 던전 등록과 시작 구역 설정 메서드
+        private void Start() // 수동 Room 호환 또는 절차 생성 완료 상태 확인 메서드
         {
-            RegisterRooms(); // 좌표별 Room 검색 목록 생성
-            SetCurrentRoom(startRoom, true); // 시작 구역을 현재 구역으로 지정하고 카메라 즉시 적용
+            if (initializedByGenerator) // DungeonGenerator가 Awake 단계에서 Room 등록을 완료했는지 확인
+            {
+                return; // 생성된 던전을 수동 배열로 다시 덮어쓰지 않음
+            }
+
+            RegisterRooms(); // 기존 수동 Room 배열을 좌표별 검색 목록에 등록
+            if (startRoom != null) // 기존 시작 Room 참조 존재 여부 확인
+            {
+                SetCurrentRoom(startRoom, true); // 수동 테스트 호환 시작 Room 적용
+            }
+        }
+
+        public void InitializeGeneratedDungeon(RoomController[] generatedRooms, RoomController firstRoom, bool placePlayerAtStart) // DungeonGenerator가 완성한 Room 목록을 현재 회차에 등록하는 메서드
+        {
+            rooms = generatedRooms; // 절차 생성된 전체 Room 배열 저장
+            startRoom = firstRoom; // 절차 생성된 시작 Room 저장
+            initializedByGenerator = true; // Start의 기존 수동 초기화를 차단하도록 생성 완료 상태 기록
+            RegisterRooms(); // 생성된 Room의 격자 좌표와 RoomManager 참조 등록
+
+            if (startRoom == null) // 시작 Room 존재 여부 확인
+            {
+                return; // 생성 결과에 시작 Room이 없으면 초기 배치 중단
+            }
+
+            if (placePlayerAtStart) // 플레이어를 새 던전 시작 Room에 배치할지 확인
+            {
+                PlacePlayerAtRoomCenter(startRoom); // 플레이어를 Start Room 중심으로 안전하게 이동
+            }
+
+            SetCurrentRoom(startRoom, true); // 생성된 시작 Room을 CurrentRoom으로 적용하고 카메라 즉시 전환
+        }
+
+        public void PlacePlayerAtRoomCenter(RoomController room) // 지정 Room 중심으로 플레이어를 이동하는 메서드
+        {
+            if (room == null) // 대상 Room 존재 여부 확인
+            {
+                return; // 플레이어 Room 중심 이동 중단
+            }
+
+            Vector3 targetPosition = room.transform.position; // 지정 Room 월드 중심 위치 계산
+            if (playerBody != null) // 플레이어 Rigidbody2D 존재 여부 확인
+            {
+                playerBody.linearVelocity = Vector2.zero; // 이전 전투·이동 속도 제거
+                playerBody.angularVelocity = 0f; // 이전 회전 속도 제거
+                playerBody.position = targetPosition; // 물리 위치를 새 Start Room 중심으로 이동
+            }
+            else if (playerMovement != null) // Rigidbody2D가 없고 PlayerMovement는 존재하는지 확인
+            {
+                playerMovement.transform.position = targetPosition; // 플레이어 Transform을 새 Room 중심으로 이동
+            }
+
+            Physics2D.SyncTransforms(); // 새 Room 중심 위치를 현재 Physics2D 상태에 즉시 반영
         }
 
         public void RegisterRooms() // 현재 Room 배열을 좌표별 검색 목록에 등록하는 메서드

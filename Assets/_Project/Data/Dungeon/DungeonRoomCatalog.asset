@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe890c65e50d4755a04d0a277fcd68a5, type: 3}
+  m_Name: DungeonRoomCatalog
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.DungeonRoomCatalog
+  startRoom: {fileID: 11400000, guid: 620e0c92773219b438d19e89f63f484f, type: 2}
+  normalRooms:
+  - {fileID: 11400000, guid: a9d42bbf21ef8564688a22f8aad9c4bb, type: 2}
+  - {fileID: 11400000, guid: 0ebba3162bbb19340bca1a012ef55245, type: 2}
+  - {fileID: 11400000, guid: f841ac3c65b825d48a1cc42d607ca934, type: 2}
