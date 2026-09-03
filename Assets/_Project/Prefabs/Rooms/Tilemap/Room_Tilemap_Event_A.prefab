@@ -349,7 +349,7 @@ MonoBehaviour:
   visualRenderer: {fileID: 5955496112571999053}
   blockerCollider: {fileID: 8371289341547013336}
   openColor: {r: 0.25, g: 0.85, b: 1, a: 0.72}
-  lockedColor: {r: 1, g: 0.32, b: 0.2, a: 0.95}
+  lockedColor: {r: 1, g: 0.06, b: 0.06, a: 1}
   closedColor: {r: 0.22, g: 0.25, b: 0.34, a: 1}
 --- !u!1 &610730660015067984
 GameObject:
@@ -1221,7 +1221,7 @@ MonoBehaviour:
   visualRenderer: {fileID: 1250247607344017073}
   blockerCollider: {fileID: 462340172592380269}
   openColor: {r: 0.25, g: 0.85, b: 1, a: 0.72}
-  lockedColor: {r: 1, g: 0.32, b: 0.2, a: 0.95}
+  lockedColor: {r: 1, g: 0.06, b: 0.06, a: 1}
   closedColor: {r: 0.22, g: 0.25, b: 0.34, a: 1}
 --- !u!1 &4564514413019707135
 GameObject:
@@ -1322,7 +1322,7 @@ MonoBehaviour:
   visualRenderer: {fileID: 2299895423393552813}
   blockerCollider: {fileID: 1734395822237966645}
   openColor: {r: 0.25, g: 0.85, b: 1, a: 0.72}
-  lockedColor: {r: 1, g: 0.32, b: 0.2, a: 0.95}
+  lockedColor: {r: 1, g: 0.06, b: 0.06, a: 1}
   closedColor: {r: 0.22, g: 0.25, b: 0.34, a: 1}
 --- !u!1 &4823574032250032764
 GameObject:
@@ -1561,7 +1561,7 @@ MonoBehaviour:
   visualRenderer: {fileID: 7092700972705183735}
   blockerCollider: {fileID: 1884872331659663452}
   openColor: {r: 0.25, g: 0.85, b: 1, a: 0.72}
-  lockedColor: {r: 1, g: 0.32, b: 0.2, a: 0.95}
+  lockedColor: {r: 1, g: 0.06, b: 0.06, a: 1}
   closedColor: {r: 0.22, g: 0.25, b: 0.34, a: 1}
 --- !u!1 &5912475108853013244
 GameObject:

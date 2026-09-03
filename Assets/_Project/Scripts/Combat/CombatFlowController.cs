@@ -1,4 +1,4 @@
-using ProjectQ.Cards; // 카드 전투 기능 사용
+using ProjectQ.Cards; // 카드 전투와 Retry 덱 초기화 기능 사용
 using ProjectQ.Enemies; // 적 시스템 기능 사용
 using ProjectQ.Player; // 플레이어 시스템 기능 사용
 using UnityEngine; // Unity 기본 기능 사용
@@ -7,7 +7,7 @@ using UnityEngine.UI; // Unity UI 기능 사용
 
 namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 {
-    public sealed class CombatFlowController : MonoBehaviour // 사망과 Retry 흐름 관리 클래스
+    public sealed class CombatFlowController : MonoBehaviour // 사망과 Room 기반 Retry 흐름 관리 클래스
     {
         [SerializeField] private PlayerStats playerStats; // 플레이어 상태 참조
         [SerializeField] private PlayerMovement playerMovement; // 플레이어 이동 참조
@@ -19,9 +19,10 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         [SerializeField] private ArenaController arena; // 전투 아레나 참조
         [SerializeField] private EnemySpawner enemySpawner; // 적 생성기 참조
         [SerializeField] private ProjectilePool projectilePool; // 투사체 풀 참조
+        [SerializeField] private RoomCombatDirector roomCombatDirector; // 현재 전투 Room 위치와 Room 전투 재시작 참조
         [SerializeField] private GameObject gameOverPanel; // Game Over UI 참조
         [SerializeField] private Button retryButton; // Retry 버튼 참조
-        private Vector3 playerStartPosition; // 플레이어 시작 위치
+        private Vector3 playerStartPosition; // Room 전투가 없을 때 사용할 기존 플레이어 시작 위치
         private bool gameOver; // 현재 Game Over 상태
 
         public bool IsGameOver => gameOver; // Game Over 상태 반환
@@ -47,18 +48,23 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             runDeck = deck; // 회차 덱 저장
         }
 
-        private void Awake() // 전투 흐름 초기화
+        public void ConfigureRoomCombat(RoomCombatDirector director) // Day19 Room 기반 Retry 참조 설정 메서드
+        {
+            roomCombatDirector = director; // 현재 전투 Room 위치와 전투 재시작 담당 Director 저장
+        }
+
+        private void Awake() // 전투 흐름 초기화 메서드
         {
             if (playerStats != null) // 플레이어 상태 존재 여부 확인
             {
-                playerStartPosition = playerStats.transform.position; // 최초 위치 저장
+                playerStartPosition = playerStats.transform.position; // Room 전투 외 상황용 최초 위치 저장
             }
 
             gameOver = false; // Game Over 상태 초기화
             SetGameOverPanelVisible(false); // Game Over UI 숨김
         }
 
-        private void OnEnable() // 이벤트 연결
+        private void OnEnable() // 사망과 Retry 버튼 이벤트 연결 메서드
         {
             if (playerStats != null) // 플레이어 상태 존재 여부 확인
             {
@@ -71,7 +77,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             }
         }
 
-        private void Update() // Retry 입력 확인
+        private void Update() // Game Over Retry 입력 확인 메서드
         {
             if (!gameOver) // Game Over 상태 여부 확인
             {
@@ -80,17 +86,17 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
             if (WasRetryPressedThisFrame()) // 키보드 또는 게임패드 Retry 확인
             {
-                Retry(); // 전투 재시작
+                Retry(); // 현재 Room 전투 재시작
                 return; // 추가 입력 처리 종료
             }
 
-            if (WasRetryButtonClickedByMouse()) // 마우스 Retry 버튼 확인
+            if (WasRetryButtonClickedByMouse()) // 마우스 Retry 버튼 영역 클릭 확인
             {
-                Retry(); // 전투 재시작
+                Retry(); // 현재 Room 전투 재시작
             }
         }
 
-        private void OnDisable() // 이벤트 연결 해제
+        private void OnDisable() // 사망과 Retry 버튼 이벤트 연결 해제 메서드
         {
             if (playerStats != null) // 플레이어 상태 존재 여부 확인
             {
@@ -103,7 +109,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             }
         }
 
-        public void Retry() // Game Over 전투 재시작
+        public void Retry() // Game Over에서 현재 Room 전투 또는 기존 Arena 전투 재시작 메서드
         {
             if (!gameOver) // 실제 Game Over 여부 확인
             {
@@ -119,10 +125,15 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             projectilePool.ReleaseAll(); // 모든 활성 투사체 초기화
             if (enemySpawner != null) // 적 생성기 존재 여부 확인
             {
-                enemySpawner.ClearAllEnemies(); // 기존 적 정리
+                enemySpawner.ClearAllEnemies(); // 실패 전투 기존 적 정리
             }
 
-            ResetPlayerTransform(); // 플레이어 위치 초기화
+            bool placedInCombatRoom = roomCombatDirector != null && roomCombatDirector.TryPlacePlayerAtActiveCombatRoom(); // 현재 전투 Room 중심으로 플레이어 배치 시도
+            if (!placedInCombatRoom) // Room 기반 Retry 위치를 사용하지 못했는지 확인
+            {
+                ResetPlayerTransform(); // 기존 단일 Arena 호환 최초 위치 복귀
+            }
+
             if (playerStats != null) // 플레이어 상태 존재 여부 확인
             {
                 playerStats.ResetStats(); // HP MP Shield 초기화
@@ -135,18 +146,24 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
             if (runDeck != null) // 카드 덱 존재 여부 확인
             {
-                runDeck.ResetCombatStatePreserveGrowth(); // 획득 카드와 강화 단계는 유지하고 Draw Discard Active Slot과 쿨타임만 초기화
+                runDeck.ResetCombatStatePreserveGrowth(); // 획득·강화 상태는 유지하고 Draw Discard Active Slot과 쿨타임만 초기화
             }
 
             SetPlayerControlEnabled(true); // 플레이어 조작 재활성화
             gameOver = false; // Game Over 해제
-            if (arena != null) // 아레나 존재 여부 확인
+
+            if (roomCombatDirector != null && roomCombatDirector.RestartCurrentCombat()) // 현재 Room 기반 전투 재시작 성공 여부 확인
             {
-                arena.RestartCombat(); // 전투 아레나 재시작
+                return; // Room 전투 재시작이 완료되면 기존 Arena 직접 Restart 생략
+            }
+
+            if (arena != null) // 기존 단일 Arena 참조 존재 여부 확인
+            {
+                arena.RestartCombat(); // Room 전투가 없을 때 기존 Arena 재시작 호환
             }
         }
 
-        private void HandlePlayerDied() // 플레이어 사망 처리
+        private void HandlePlayerDied() // 플레이어 사망 처리 메서드
         {
             if (gameOver) // 중복 사망 여부 확인
             {
@@ -156,7 +173,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             gameOver = true; // Game Over 상태 설정
             if (arena != null) // 아레나 존재 여부 확인
             {
-                arena.FailCombat(); // 전투 실패 처리
+                arena.FailCombat(); // 현재 Room 전투 실패 처리
             }
 
             if (enemySpawner != null) // 적 생성기 존재 여부 확인
@@ -179,11 +196,11 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             SetGameOverPanelVisible(true); // Game Over UI 표시
         }
 
-        private void ResetPlayerTransform() // 플레이어 위치와 속도 초기화
+        private void ResetPlayerTransform() // 기존 단일 Arena 호환 플레이어 위치와 속도 초기화 메서드
         {
             if (playerStats != null) // 플레이어 Transform 접근 가능 여부 확인
             {
-                playerStats.transform.position = playerStartPosition; // 시작 위치 복귀
+                playerStats.transform.position = playerStartPosition; // 최초 시작 위치 복귀
             }
 
             if (playerBody != null) // Rigidbody2D 존재 여부 확인
@@ -192,9 +209,11 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 playerBody.linearVelocity = Vector2.zero; // 이동 속도 초기화
                 playerBody.angularVelocity = 0f; // 회전 속도 초기화
             }
+
+            Physics2D.SyncTransforms(); // Transform과 Rigidbody2D 위치를 현재 Physics2D 상태에 즉시 반영
         }
 
-        private void SetPlayerControlEnabled(bool enabled) // 플레이어 조작 활성 상태 설정
+        private void SetPlayerControlEnabled(bool enabled) // 플레이어 조작 활성 상태 설정 메서드
         {
             if (playerMovement != null) // 이동 컴포넌트 확인
             {
@@ -223,7 +242,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             }
         }
 
-        private void SetGameOverPanelVisible(bool visible) // Game Over UI 표시 상태 설정
+        private void SetGameOverPanelVisible(bool visible) // Game Over UI 표시 상태 설정 메서드
         {
             if (gameOverPanel != null) // Game Over 패널 존재 여부 확인
             {
@@ -231,14 +250,14 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             }
         }
 
-        private bool WasRetryPressedThisFrame() // Retry 키 입력 확인
+        private bool WasRetryPressedThisFrame() // Retry 키 입력 확인 메서드
         {
             bool keyboardPressed = Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame; // 키보드 R 확인
             bool gamepadPressed = Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame; // 게임패드 South 확인
             return keyboardPressed || gamepadPressed; // Retry 입력 반환
         }
 
-        private bool WasRetryButtonClickedByMouse() // 마우스 Retry 버튼 확인
+        private bool WasRetryButtonClickedByMouse() // 마우스 Retry 버튼 확인 메서드
         {
             if (Mouse.current == null || retryButton == null || !retryButton.gameObject.activeInHierarchy) // 마우스와 버튼 상태 확인
             {

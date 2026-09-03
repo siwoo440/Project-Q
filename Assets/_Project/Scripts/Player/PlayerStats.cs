@@ -9,8 +9,8 @@ namespace ProjectQ.Player // 플레이어 시스템 네임스페이스
         [SerializeField] private float maxHealth = 100f; // 플레이어 최대 체력
         [SerializeField] private float maxMana = 100f; // 플레이어 최대 마나
         [SerializeField] private float maxShield = 100f; // 플레이어 최대 실드
-        [SerializeField] private float startingShield = 25f; // 플레이어 시작 실드
-        [SerializeField] private float baseManaRegenPerSecond = 5f; // 플레이어 기본 초당 MP 자동 회복량
+        [SerializeField] private float startingShield = 0f; // 기본 테스트에서는 적 탄환 HP 피해를 바로 확인하도록 시작 실드 제거
+        [SerializeField] private float baseManaRegenPerSecond = 15f; // 기존 5에서 3배 증가한 플레이어 기본 초당 MP 자동 회복량
         private float currentHealth; // 플레이어 현재 체력
         private float currentMana; // 플레이어 현재 마나
         private float currentShield; // 플레이어 현재 실드

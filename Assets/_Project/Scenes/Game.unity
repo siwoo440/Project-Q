@@ -459,7 +459,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 147592840}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 86f4ee2fb4684450836ec400e75722af, type: 3}
   m_Name: 
@@ -2499,6 +2499,7 @@ GameObject:
   - component: {fileID: 520812096}
   - component: {fileID: 520812095}
   - component: {fileID: 520812094}
+  - component: {fileID: 520812097}
   m_Layer: 0
   m_Name: DungeonSystem
   m_TagString: Untagged
@@ -2557,6 +2558,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &520812097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50ecbfee1e7d436e80e93c564b00ae9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Combat.RoomCombatDirector
+  roomManager: {fileID: 520812095}
+  arena: {fileID: 1976374619}
+  enemySpawner: {fileID: 752531645}
+  projectilePool: {fileID: 606831648}
+  enemyPrefab: {fileID: 8225141831024164845, guid: c3d03b9325e1bd442a760b0eeec398df, type: 3}
+  enemyData: {fileID: 11400000, guid: 80eb6d36d2a2a1e42804a16e8fb0fb17, type: 2}
+  playerTarget: {fileID: 1087613222}
+  runDeck: {fileID: 866756720}
+  normalBaseEnemyCount: 3
+  eliteBonusEnemyCount: 2
+  maximumEnemyCount: 8
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0
@@ -4556,8 +4580,8 @@ MonoBehaviour:
   maxHealth: 100
   maxMana: 100
   maxShield: 100
-  startingShield: 25
-  baseManaRegenPerSecond: 5
+  startingShield: 0
+  baseManaRegenPerSecond: 15
 --- !u!114 &1087613230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4627,6 +4651,7 @@ MonoBehaviour:
   arena: {fileID: 1976374619}
   enemySpawner: {fileID: 752531645}
   projectilePool: {fileID: 606831648}
+  roomCombatDirector: {fileID: 520812097}
   gameOverPanel: {fileID: 1530858829}
   retryButton: {fileID: 1207165933}
 --- !u!4 &1117219557
@@ -6799,7 +6824,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1672061901}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d542d3471df64a87977c6e106039d0ba, type: 3}
   m_Name: 

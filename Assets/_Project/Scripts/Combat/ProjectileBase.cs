@@ -84,23 +84,16 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             }
         }
 
-        private void OnTriggerEnter2D(Collider2D other) // Trigger 충돌 처리
+        private void OnTriggerEnter2D(Collider2D other) // Trigger 최초 충돌 처리
         {
             if (other == null || IsOwnerCollider(other)) // 무효 또는 자기 충돌 확인
             {
                 return; // 충돌 처리 생략
             }
 
-            PlayerStats playerStats = other.GetComponentInParent<PlayerStats>(); // 플레이어 계층 검색
-            if (playerStats != null) // 플레이어 충돌 여부 확인
+            if (TryHandlePlayerHit(other)) // 플레이어 작은 Hitbox 충돌인지 확인하고 피해 적용 시도
             {
-                PlayerHitbox playerHitbox = other.GetComponent<PlayerHitbox>(); // 실제 Hitbox 검색
-                if (playerHitbox != null) // 실제 Hitbox 여부 확인
-                {
-                    TryDamage(playerHitbox); // 플레이어 피해 적용
-                }
-
-                return; // 플레이어 충돌 처리 종료
+                return; // 플레이어 계층 충돌은 일반 피해 대상 검색에서 제외
             }
 
             IDamageable damageable = FindDamageable(other); // 일반 피해 대상 검색
@@ -116,11 +109,61 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
             }
         }
 
+        private void OnTriggerStay2D(Collider2D other) // 풀링·복합 Collider 상황에서 플레이어 피격 누락을 보완하는 지속 충돌 처리
+        {
+            if (other == null || IsOwnerCollider(other)) // 무효 또는 자기 충돌 확인
+            {
+                return; // 지속 충돌 처리 생략
+            }
+
+            TryHandlePlayerHit(other); // 최초 Enter가 누락되어도 실제 작은 Hitbox와 겹치면 피해 적용 재시도
+        }
+
+        private bool TryHandlePlayerHit(Collider2D other) // 플레이어 계층 충돌을 작은 PlayerHitbox 기준으로 처리하는 메서드
+        {
+            PlayerStats playerStats = other.GetComponentInParent<PlayerStats>(); // 현재 Collider가 플레이어 계층인지 확인
+            if (playerStats == null) // 플레이어 계층이 아닌지 확인
+            {
+                return false; // 일반 피해 대상 검색 계속 허용
+            }
+
+            PlayerHitbox playerHitbox = ResolvePlayerHitbox(other, playerStats); // 현재 Collider와 연결된 실제 작은 Hitbox 검색
+            if (playerHitbox != null) // 실제 PlayerHitbox 충돌 여부 확인
+            {
+                TryDamage(playerHitbox); // 회피 무적과 PlayerStats를 거쳐 실제 피해 적용
+            }
+
+            return true; // 플레이어 몸체 Collider는 피해 판정에서 제외하고 Hitbox만 사용
+        }
+
+        private PlayerHitbox ResolvePlayerHitbox(Collider2D other, PlayerStats playerStats) // 복합 Collider 구조에서 실제 PlayerHitbox를 안전하게 찾는 메서드
+        {
+            PlayerHitbox directHitbox = other.GetComponent<PlayerHitbox>(); // 현재 Collider 오브젝트의 PlayerHitbox 직접 검색
+            if (directHitbox != null) // 직접 연결된 작은 Hitbox 존재 여부 확인
+            {
+                return directHitbox; // 직접 PlayerHitbox 반환
+            }
+
+            PlayerHitbox parentHitbox = other.GetComponentInParent<PlayerHitbox>(); // Hitbox 하위 Collider 구조를 위한 부모 검색
+            if (parentHitbox != null) // 부모 PlayerHitbox 존재 여부 확인
+            {
+                return parentHitbox; // 부모 PlayerHitbox 반환
+            }
+
+            PlayerHitbox childHitbox = playerStats.GetComponentInChildren<PlayerHitbox>(true); // 플레이어 복합 Rigidbody의 등록된 Hitbox 검색
+            if (childHitbox != null && childHitbox.Collider == other) // 현재 충돌 Collider가 실제 등록된 작은 Hitbox인지 확인
+            {
+                return childHitbox; // 등록된 PlayerHitbox 반환
+            }
+
+            return null; // 플레이어 이동용 몸체 Collider는 피격 대상으로 사용하지 않음
+        }
+
         private void TryDamage(IDamageable damageable) // 공통 피해 적용
         {
-            if (damageable.Faction == Faction) // 같은 진영 여부 확인
+            if (damageable == null || damageable.Faction == Faction) // 무효 또는 같은 진영 여부 확인
             {
-                return; // 아군 피해 생략
+                return; // 잘못된 대상과 아군 피해 생략
             }
 
             DamageInfo info = new DamageInfo(damage, Faction, owner != null ? owner : gameObject); // 피해 정보 생성
