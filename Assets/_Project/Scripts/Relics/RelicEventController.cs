@@ -118,7 +118,16 @@ namespace ProjectQ.Relics // 유물 시스템 네임스페이스
 
         private void HandleCombatStarted() // 전투 시작 조건부 유물 처리 메서드
         {
+            ResetCombatRuntimeStates(); // 새 전투마다 조건 누적과 내부 쿨타임 초기화
             ProcessTrigger(RelicTriggerType.OnCombatStart, null); // 전투 시작형 유물 조건 처리
+        }
+
+        public void ResetCombatRuntimeStates() // 현재 보유 조건부 유물의 전투 단위 런타임 상태 초기화 메서드
+        {
+            foreach (RelicRuntimeState state in runtimeStates.Values) // 현재 생성된 모든 유물 런타임 상태 순회
+            {
+                state.Reset(); // 조건 충족 누적 횟수와 내부 쿨타임 초기화
+            }
         }
 
         private void HandleCombatCleared() // 전투 클리어 조건부 유물 처리 메서드

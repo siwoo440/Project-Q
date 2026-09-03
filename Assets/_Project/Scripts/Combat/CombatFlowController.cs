@@ -13,7 +13,6 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
         [SerializeField] private PlayerMovement playerMovement; // 플레이어 이동 참조
         [SerializeField] private PlayerDodge playerDodge; // 플레이어 회피 참조
         [SerializeField] private PlayerAim playerAim; // 플레이어 조준 참조
-        [SerializeField] private PlayerProjectileTester projectileTester; // 이전 테스트 공격 참조
         [SerializeField] private CardUseController cardUseController; // 실제 카드 공격 참조
         [SerializeField] private RunDeck runDeck; // Retry 초기화용 덱 참조
         [SerializeField] private Rigidbody2D playerBody; // 플레이어 물리 바디 참조
@@ -27,13 +26,13 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
         public bool IsGameOver => gameOver; // Game Over 상태 반환
 
-        public void Configure(PlayerStats stats, PlayerMovement movement, PlayerDodge dodge, PlayerAim aim, PlayerProjectileTester tester, Rigidbody2D body, ArenaController arenaController, EnemySpawner spawner, ProjectilePool pool, GameObject panel, Button button) // 기존 전투 참조 설정 메서드
+        public void Configure(PlayerStats stats, PlayerMovement movement, PlayerDodge dodge, PlayerAim aim, MonoBehaviour tester, Rigidbody2D body, ArenaController arenaController, EnemySpawner spawner, ProjectilePool pool, GameObject panel, Button button) // 과거 Setup 호환 전투 참조 설정 메서드
         {
             playerStats = stats; // 플레이어 상태 저장
             playerMovement = movement; // 이동 참조 저장
             playerDodge = dodge; // 회피 참조 저장
             playerAim = aim; // 조준 참조 저장
-            projectileTester = tester; // 테스트 공격 참조 저장
+            _ = tester; // 기존 Editor Setup 시그니처 호환만 유지하고 테스트 공격은 런타임에서 사용하지 않음
             playerBody = body; // 물리 바디 저장
             arena = arenaController; // 아레나 저장
             enemySpawner = spawner; // 적 생성기 저장
@@ -212,14 +211,9 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
                 playerAim.enabled = enabled; // 조준 활성 상태 적용
             }
 
-            if (projectileTester != null) // 이전 테스트 공격 컴포넌트 확인
-            {
-                projectileTester.enabled = enabled; // 이전 테스트 공격 활성 상태 적용
-            }
-
             if (cardUseController != null) // 실제 카드 공격 컴포넌트 확인
             {
-                cardUseController.enabled = enabled; // 카드 선택과 사용 활성 상태 적용
+                cardUseController.enabled = enabled; // 좌클릭·우클릭 카드 직접 사용 활성 상태 적용
             }
 
             if (!enabled && playerBody != null) // 조작 정지 시 물리 바디 확인

@@ -21,7 +21,7 @@ namespace ProjectQ.Combat // 전투 시스템 네임스페이스
 
         public CombatState State => state; // 현재 전투 상태 반환
         public int RemainingEnemies => enemySpawner != null ? enemySpawner.ActiveEnemyCount : 0; // 현재 남은 적 수 반환
-        public int TotalEnemySlots => enemySpawner != null ? enemySpawner.SpawnPointCount : 0; // 현재 아레나 적 슬롯 수 반환
+        public int TotalEnemySlots => enemySpawner != null ? (enemySpawner.LastSpawnedCount > 0 ? enemySpawner.LastSpawnedCount : enemySpawner.PlannedEnemyCount) : 0; // 현재 전투 실제 또는 계획 적 수 반환
 
         public void Configure(EnemySpawner spawner, ProjectilePool pool, bool autoStart) // 아레나 참조 설정 메서드
         {

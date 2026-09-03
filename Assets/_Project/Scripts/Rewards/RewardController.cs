@@ -1,4 +1,5 @@
 using System; // C# 이벤트 기능 사용
+using System.Collections; // 후보 없음 보상 완료 지연 처리 기능 사용
 using System.Collections.Generic; // 보상 후보 목록 기능 사용
 using ProjectQ.Cards; // 카드 덱과 카드 사용 기능 사용
 using ProjectQ.Combat; // 전투 아레나 상태 기능 사용
@@ -27,7 +28,8 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
         private bool selectionLocked; // 현재 보상 중복 선택 방지 상태
 
         public event Action<IReadOnlyList<RewardData>> RewardStarted; // 전투 보상 선택 시작 이벤트
-        public event Action<RewardData> RewardClaimed; // 전투 보상 획득 완료 이벤트
+        public event Action<RewardData> RewardClaimed; // 실제 보상 획득 완료 이벤트
+        public event Action<RewardData> RewardResolved; // 보상 선택 또는 후보 없음 처리 완료 이벤트
         public bool RewardActive => rewardActive; // 현재 보상 선택 진행 상태 반환
         public IReadOnlyList<RewardData> CurrentChoices => currentChoices; // 현재 보상 후보 읽기 전용 반환
 
@@ -106,7 +108,8 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
                 arena.CompleteReward(); // 전투 아레나 Reward 상태 종료
             }
 
-            RewardClaimed?.Invoke(reward); // 보상 처리 종료 후 상점 등 후속 성장 흐름에 이벤트 전달
+            RewardClaimed?.Invoke(reward); // 실제 보상 획득 완료 이벤트 전달
+            RewardResolved?.Invoke(reward); // 회차 흐름에 무료 보상 단계 완료 이벤트 전달
             return true; // 보상 선택 성공 반환
         }
 
@@ -121,11 +124,14 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
             currentChoices.AddRange(generator.GenerateChoices(3, runDeck, playerStats, relicInventory)); // 현재 덱과 플레이어와 유물 상태에서 최대 3개 보상 후보 생성
             if (currentChoices.Count == 0) // 유효 보상 후보 생성 여부 확인
             {
-                if (arena != null) // 전투 아레나 참조 존재 여부 확인
+                rewardActive = false; // 보상 선택 진행 상태를 비활성으로 유지
+                selectionLocked = true; // 후보 없는 화면의 잘못된 선택 입력 차단
+                if (hud != null) // 보상 HUD 참조 존재 여부 확인
                 {
-                    arena.CompleteReward(); // 후보가 없으면 Reward 상태 없이 전투 클리어 상태 유지
+                    hud.Hide(); // 후보가 없으면 보상 HUD를 표시하지 않음
                 }
 
+                StartCoroutine(ResolveEmptyRewardNextFrame()); // CombatCleared 이벤트 구독 순서와 무관하게 다음 프레임 후속 상점 흐름 전달
                 return; // 보상 선택 시작 처리 중단
             }
 
@@ -143,6 +149,12 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
             }
 
             RewardStarted?.Invoke(currentChoices); // 보상 선택 시작 이벤트 전달
+        }
+
+        private IEnumerator ResolveEmptyRewardNextFrame() // 보상 후보 없음 완료 이벤트 다음 프레임 전달 코루틴
+        {
+            yield return null; // Arena CombatCleared의 모든 구독자 처리가 끝날 때까지 한 프레임 대기
+            RewardResolved?.Invoke(null); // 후보 없음도 정상 무료 보상 완료로 처리
         }
 
         private bool ApplyReward(RewardData reward) // 선택한 보상 유형별 실제 적용 메서드
@@ -183,7 +195,7 @@ namespace ProjectQ.Rewards // 보상 시스템 네임스페이스
         {
             if (cardUseController != null) // 카드 사용 컨트롤러 존재 여부 확인
             {
-                cardUseController.enabled = enabled; // Q E 카드 선택과 좌클릭 사용 활성 상태 적용
+                cardUseController.enabled = enabled; // 좌클릭·우클릭 카드 직접 사용 활성 상태 적용
             }
 
             if (playerMovement != null) // 플레이어 이동 컨트롤러 존재 여부 확인

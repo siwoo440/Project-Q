@@ -76,7 +76,7 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
             StateChanged?.Invoke(); // 덱 상태 이벤트 전달
         }
 
-        public void ResetCombatStatePreserveGrowth() // 현재 회차 성장 상태를 유지한 전투 재시작 메서드
+        public void PrepareNextCombat() // 현재 회차 성장 상태를 유지한 다음 전투 카드 순환 준비 메서드
         {
             List<RuntimeCard> allCards = GetAllCards(); // 현재 획득·강화 상태가 유지된 모든 런타임 카드 수집
             drawPile.Clear(); // 기존 Draw Pile 초기화
@@ -91,14 +91,19 @@ namespace ProjectQ.Cards // 카드 시스템 네임스페이스
                     continue; // 무효 카드 재구성 제외
                 }
 
-                card.ResetCooldown(); // 전투 Retry 시 카드 개별 쿨타임 초기화
+                card.ResetCooldown(); // 다음 전투 시작 전 카드 개별 쿨타임 초기화
                 drawPile.Add(card); // 성장 상태를 유지한 동일 RuntimeCard를 Draw Pile에 복귀
             }
 
-            CreateEmptyActiveSlots(); // 활성 슬롯 빈 구조 다시 생성
+            CreateEmptyActiveSlots(); // 활성 슬롯 두 칸 빈 구조 다시 생성
             Shuffle(drawPile); // 현재 회차 덱 재셔플
-            FillEmptySlots(); // Q E 활성 슬롯 다시 채우기
+            FillEmptySlots(); // 좌클릭·우클릭 활성 슬롯 다시 채우기
             StateChanged?.Invoke(); // 덱 재구성 상태 변경 이벤트 전달
+        }
+
+        public void ResetCombatStatePreserveGrowth() // 기존 Retry 코드 호환용 카드 전투 상태 초기화 메서드
+        {
+            PrepareNextCombat(); // 다음 전투 준비와 동일한 성장 보존 재구성 실행
         }
 
         public RuntimeCard GetActiveCard(int slotIndex) // 활성 슬롯 카드 반환 메서드

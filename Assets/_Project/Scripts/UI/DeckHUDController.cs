@@ -8,7 +8,6 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
     public sealed class DeckHUDController : MonoBehaviour // 2칸 카드 전투 HUD 관리 클래스
     {
         [SerializeField] private RunDeck deck; // 회차 덱 참조
-        [SerializeField] private CardUseController cardUseController; // 카드 직접 사용 컨트롤러 호환 참조
         [SerializeField] private PlayerStats playerStats; // 플레이어 MP 참조
         [SerializeField] private Text drawText; // Draw 수 텍스트
         [SerializeField] private Text discardText; // Discard 수 텍스트
@@ -20,7 +19,7 @@ namespace ProjectQ.UI // 프로젝트 UI 네임스페이스
         public void Configure(RunDeck runDeck, CardUseController useController, PlayerStats stats, Text drawCount, Text discardCount, Text totalCount, Text selectedText, Text[] cardSlotTexts, Image[] cardSlotBackgrounds) // HUD 참조 설정
         {
             deck = runDeck; // 덱 저장
-            cardUseController = useController; // 카드 사용 컨트롤러 저장
+            _ = useController; // 기존 Editor Setup 인자 호환만 유지하고 선택 상태 참조는 사용하지 않음
             playerStats = stats; // 플레이어 상태 저장
             drawText = drawCount; // Draw 텍스트 저장
             discardText = discardCount; // Discard 텍스트 저장

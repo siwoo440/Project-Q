@@ -37,6 +37,11 @@ namespace ProjectQ.Shop // 상점 시스템 네임스페이스
             return new ShopOffer(ShopOfferType.Heal, null, null, price, amount); // 회복량과 가격을 가진 상품 반환
         }
 
+        public static ShopOffer CreateUpgradeCard(int price) // 카드 강화 상점 서비스 생성 메서드
+        {
+            return new ShopOffer(ShopOfferType.UpgradeCard, null, null, price, 0f); // 카드 강화 가격을 가진 상품 반환
+        }
+
         public static ShopOffer CreateRemoveCard(int price) // 카드 제거 상점 서비스 생성 메서드
         {
             return new ShopOffer(ShopOfferType.RemoveCard, null, null, price, 0f); // 카드 제거 가격을 가진 상품 반환
