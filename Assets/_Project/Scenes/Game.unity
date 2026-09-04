@@ -2366,6 +2366,8 @@ GameObject:
   - component: {fileID: 520812099}
   - component: {fileID: 520812100}
   - component: {fileID: 520812101}
+  - component: {fileID: 520812103}
+  - component: {fileID: 520812102}
   m_Layer: 0
   m_Name: DungeonSystem
   m_TagString: Untagged
@@ -2409,6 +2411,7 @@ MonoBehaviour:
   playerBody: {fileID: 1087613228}
   roomCamera: {fileID: 368684566}
   transitionLockDuration: 0.18
+  hideInactiveRooms: 1
 --- !u!4 &520812096
 Transform:
   m_ObjectHideFlags: 0
@@ -2536,6 +2539,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Rooms.RoomTemplateIntegrationValidator
   roomManager: {fileID: 520812095}
   validateOnStart: 1
+--- !u!114 &520812102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7da982d7679c4f47908ea99793f48f65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Bosses.BossHealthHUD
+  director: {fileID: 520812103}
+  width: 520
+  height: 48
+  topMargin: 24
+--- !u!114 &520812103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f26d690a03443d86552190c7198fb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Bosses.BossBattleDirector
+  roomManager: {fileID: 520812095}
+  projectilePool: {fileID: 606831648}
+  bossPrefab: {fileID: 0}
+  prototypeBossId: boss_forest_day24
+  prototypeBossName: Ruin Ent Prototype
+  prototypeBossHealth: 1200
+  bossSpawnOffset: {x: 0, y: 0}
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0
