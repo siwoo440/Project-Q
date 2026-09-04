@@ -5,9 +5,11 @@ using System.IO; // JSON Save 파일 입출력 기능 사용
 using System.Reflection; // 기존 RewardGenerator 후보 목록 읽기 기능 사용
 using ProjectQ.Cards; // RunDeck·RuntimeCard·CardData 저장 복구 기능 사용
 using ProjectQ.Combat; // PlayerStats 복구 피해 정보 기능 사용
+using ProjectQ.Menu; // 신규 회차와 이어하기 실행 방식 기능 사용
 using ProjectQ.Player; // PlayerStats 참조 기능 사용
 using ProjectQ.Relics; // RelicInventory·RelicData 저장 복구 기능 사용
 using ProjectQ.Rewards; // RunResources·RewardGenerator·RewardData 기능 사용
+using ProjectQ.Shop; // 상점 구매 완료 자동 저장 기능 사용
 using UnityEngine; // JsonUtility·persistentDataPath 기능 사용
 
 namespace ProjectQ.Progression // 진행 시스템 네임스페이스
@@ -16,6 +18,7 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
     public sealed class RunSaveController : MonoBehaviour // Day28 JSON Run 진행 저장·복구 클래스
     {
         public const int CurrentSaveVersion = 1; // 현재 Save 데이터 구조 버전
+        public const string DefaultSaveFileName = "projectq_run_save.json"; // 공용 Run Save 파일 이름
         [SerializeField] private StageProgressController stageProgressController; // Chapter·Stage 저장 복구 참조
         [SerializeField] private ChapterClearController chapterClearController; // Chapter Clear 저장 복구 참조
         [SerializeField] private MemoryProgressController memoryProgressController; // Memory File 저장 복구 참조
@@ -24,12 +27,50 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         [SerializeField] private RunResources runResources; // Gold 저장 복구 참조
         [SerializeField] private RelicInventory relicInventory; // Relic 저장 복구 참조
         [SerializeField] private RewardGenerator rewardGenerator; // Card·Relic 원본 ID 복구 카탈로그 참조
+        [SerializeField] private RewardController rewardController; // 보상 완료 자동 저장 이벤트 참조
+        [SerializeField] private ShopController shopController; // 상점 구매 자동 저장 이벤트 참조
         [SerializeField] private bool loadOnStart = true; // Game 시작 시 기존 Save 자동 Load 여부
-        [SerializeField] private string saveFileName = "projectq_run_save.json"; // 현재 Run Save 파일 이름
+        [SerializeField] private string saveFileName = DefaultSaveFileName; // 현재 Run Save 파일 이름
         private bool loadApplied; // 한 실행에서 Save 중복 적용 방지 상태
+        private bool autoSaveEventsBound; // 보상·상점 자동 저장 이벤트 연결 상태
+        private RunStartData activeStartData = new RunStartData(); // 현재 회차 시작 선택 데이터
 
         public string SavePath => Path.Combine(Application.persistentDataPath, saveFileName); // 플랫폼별 Run Save 실제 파일 경로 반환
         public bool HasSave => File.Exists(SavePath); // 현재 Run Save 파일 존재 여부 반환
+        public static string DefaultSavePath => Path.Combine(Application.persistentDataPath, DefaultSaveFileName); // 메뉴 공용 Run Save 실제 경로 반환
+        public static bool HasRunSave => File.Exists(DefaultSavePath); // 메뉴 공용 Run Save 존재 여부 반환
+
+        public static bool TryReadSummary(out RunSaveSummary summary) // 메인 메뉴용 Run Save 요약 읽기 메서드
+        {
+            summary = null; // 기본 빈 요약 결과 설정
+            if (!HasRunSave) // Run Save 파일 존재 여부 확인
+            {
+                return false; // 저장 없음 반환
+            }
+
+            try // 메뉴용 JSON 읽기 예외 처리 시작
+            {
+                string json = File.ReadAllText(DefaultSavePath); // Run Save JSON 전체 읽기
+                RunSaveData data = JsonUtility.FromJson<RunSaveData>(json); // JSON을 Run Save 데이터로 변환
+                if (data == null || data.saveVersion != CurrentSaveVersion) // 데이터 존재와 버전 일치 여부 확인
+                {
+                    return false; // 지원하지 않는 저장 반환
+                }
+
+                summary = new RunSaveSummary // 메뉴용 저장 요약 생성
+                {
+                    currentChapter = Mathf.Max(1, data.currentChapter), // 안전한 Chapter 저장
+                    currentStage = Mathf.Max(1, data.currentStage), // 안전한 Stage 저장
+                    savedAtUtc = data.savedAtUtc // 마지막 저장 시각 저장
+                };
+                return true; // 요약 읽기 성공 반환
+            }
+            catch (Exception exception) // 손상 JSON 또는 파일 읽기 오류 수집
+            {
+                Debug.LogWarning($"[Project Q][Day29] Save summary unavailable: {exception.Message}"); // 메뉴 저장 요약 실패 경고 출력
+                return false; // 요약 읽기 실패 반환
+            }
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)] // Day28 컴포넌트 수동 연결 누락 시 Save 계층 보장
         private static void EnsureRuntimeControllers() // Day28 진행·Memory·Chapter Clear·Save 자동 구성 메서드
@@ -117,20 +158,105 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             {
                 rewardGenerator = FindFirstObjectByType<RewardGenerator>(); // RewardGenerator 자동 검색
             }
+
+            if (rewardController == null) // RewardController 참조 여부 확인
+            {
+                rewardController = FindFirstObjectByType<RewardController>(); // 보상 컨트롤러 자동 검색
+            }
+
+            if (shopController == null) // ShopController 참조 여부 확인
+            {
+                shopController = FindFirstObjectByType<ShopController>(); // 상점 컨트롤러 자동 검색
+            }
         }
 
         private void Awake() // Save 시스템 초기 참조 준비 메서드
         {
             AutoConfigure(); // 현재 씬 Run 시스템 참조 자동 연결
+            SubscribeAutoSaveEvents(); // 보상·상점 자동 저장 이벤트 연결
+        }
+
+        private void OnEnable() // Save 시스템 활성화 메서드
+        {
+            AutoConfigure(); // 현재 씬 자동 저장 참조 재확인
+            SubscribeAutoSaveEvents(); // 보상·상점 자동 저장 이벤트 연결
+        }
+
+        private void OnDisable() // Save 시스템 비활성화 메서드
+        {
+            UnsubscribeAutoSaveEvents(); // 보상·상점 자동 저장 이벤트 해제
         }
 
         private IEnumerator Start() // 기존 RunDeck Start 이후 자동 Load 처리 Coroutine
         {
             yield return null; // 기존 카드·보상·플레이어 초기화가 완료되도록 한 프레임 대기
+            bool hasLaunchData = RunStartContext.TryConsume(out RunStartData launchData); // 메뉴에서 전달된 실행 방식 소비
+            if (hasLaunchData && launchData.launchMode == RunLaunchMode.NewRun) // 신규 회차 실행 요청 여부 확인
+            {
+                activeStartData = launchData; // 현재 회차 선택 데이터 적용
+                if (!DeleteSave()) // 기존 Run Save 파일 삭제 성공 여부 확인
+                {
+                    Debug.LogError("[Project Q][Day29] New run aborted because the old run save could not be cleared."); // 기존 Save 삭제 실패 오류 출력
+                    yield break; // 안전하지 않은 신규 회차 저장 중단
+                }
+
+                SaveNow(); // Stage 1 기본 상태 신규 Run 자동 저장
+                yield break; // 이어하기 자동 Load 생략
+            }
+
             if (loadOnStart && HasSave) // 자동 Load 사용과 Save 존재 여부 확인
             {
                 TryLoad(); // 현재 Run Save 자동 복구 시도
             }
+            else if (hasLaunchData && launchData.launchMode == RunLaunchMode.Continue) // 이어하기 요청과 저장 부재 확인
+            {
+                Debug.LogWarning("[Project Q][Day29] Continue requested without run save data."); // 이어하기 저장 없음 경고 출력
+            }
+        }
+
+        private void SubscribeAutoSaveEvents() // 보상·상점 자동 저장 이벤트 연결 메서드
+        {
+            if (autoSaveEventsBound) // 기존 이벤트 연결 여부 확인
+            {
+                return; // 중복 이벤트 연결 방지
+            }
+
+            if (rewardController != null) // 보상 컨트롤러 참조 확인
+            {
+                rewardController.RewardResolved += HandleRewardResolved; // 보상 선택 완료 자동 저장 연결
+            }
+
+            if (shopController != null) // 상점 컨트롤러 참조 확인
+            {
+                shopController.OfferPurchased += HandleOfferPurchased; // 상점 구매 완료 자동 저장 연결
+            }
+
+            autoSaveEventsBound = rewardController != null || shopController != null; // 실제 이벤트 연결 상태 저장
+        }
+
+        private void UnsubscribeAutoSaveEvents() // 보상·상점 자동 저장 이벤트 해제 메서드
+        {
+            if (rewardController != null) // 보상 컨트롤러 참조 확인
+            {
+                rewardController.RewardResolved -= HandleRewardResolved; // 보상 자동 저장 이벤트 해제
+            }
+
+            if (shopController != null) // 상점 컨트롤러 참조 확인
+            {
+                shopController.OfferPurchased -= HandleOfferPurchased; // 상점 자동 저장 이벤트 해제
+            }
+
+            autoSaveEventsBound = false; // 이벤트 연결 상태 초기화
+        }
+
+        private void HandleRewardResolved(RewardData reward) // 보상 선택 완료 처리 메서드
+        {
+            SaveNow(); // 보상 적용 완료 상태 자동 저장
+        }
+
+        private void HandleOfferPurchased(ShopOffer offer) // 상점 구매 완료 처리 메서드
+        {
+            SaveNow(); // 구매 적용 완료 상태 자동 저장
         }
 
         public bool SaveNow() // 현재 Run 상태 JSON 저장 메서드
@@ -233,6 +359,9 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             data.playerMana = playerStats != null ? playerStats.CurrentMana : 0f; // 현재 Player MP 저장
             data.playerShield = playerStats != null ? playerStats.CurrentShield : 0f; // 현재 Player Shield 저장
             data.gold = runResources != null ? runResources.Gold : 0; // 현재 Run Gold 저장
+            data.characterId = string.IsNullOrWhiteSpace(activeStartData.characterId) ? "rina" : activeStartData.characterId; // 현재 캐릭터 ID 저장
+            data.difficulty = activeStartData.difficulty; // 현재 난이도 저장
+            data.startingDeckId = string.IsNullOrWhiteSpace(activeStartData.startingDeckId) ? "basic" : activeStartData.startingDeckId; // 현재 시작 덱 ID 저장
             data.savedAtUtc = DateTime.UtcNow.ToString("O"); // ISO 8601 UTC 저장 시각 기록
 
             if (runDeck != null) // RunDeck 존재 여부 확인
@@ -276,6 +405,13 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
 
         private bool ApplySaveData(RunSaveData data) // 역직렬화 Save 데이터를 현재 Run 시스템에 적용하는 메서드
         {
+            activeStartData = new RunStartData // 저장된 회차 시작 선택 데이터 복구
+            {
+                characterId = string.IsNullOrWhiteSpace(data.characterId) ? "rina" : data.characterId, // 저장 캐릭터 ID 복구
+                difficulty = data.difficulty, // 저장 난이도 복구
+                startingDeckId = string.IsNullOrWhiteSpace(data.startingDeckId) ? "basic" : data.startingDeckId, // 저장 시작 덱 ID 복구
+                launchMode = RunLaunchMode.Continue // 복구 회차 실행 방식 적용
+            };
             int safeChapter = Mathf.Max(1, data.currentChapter); // Save Chapter 최소값 보정
             int maxStage = stageProgressController != null ? Mathf.Max(1, stageProgressController.StagesPerChapter) : 3; // 현재 Chapter 허용 Stage 수 계산
             int safeStage = Mathf.Clamp(data.currentStage, 1, maxStage); // Save Stage 범위 보정
