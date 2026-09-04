@@ -31,6 +31,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         [SerializeField] private float aimedSpreadAngle = 18f; // 조준 확산 공격 전체 각도
         [SerializeField] private int radialBulletCount = 12; // 방사형 공격 탄환 수
         [SerializeField] private int radialAttackEvery = 4; // 방사형 공격 사용 주기
+        [SerializeField] private float visualScale = 12f; // Ruin Ent 시각 크기 배율
         private readonly List<EnemyProjectile> spawnedProjectiles = new List<EnemyProjectile>(); // 현재 보스가 생성한 탄환 추적 목록
         private Rigidbody2D body; // 보스 이동 Rigidbody2D 참조
         private Transform target; // 현재 플레이어 추적 대상
@@ -39,6 +40,9 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         private float strafeTimer; // 다음 선회 방향 변경까지 남은 시간
         private float strafeSign = 1f; // 현재 선회 방향 부호
         private int attackSequence; // 현재 공격 순서 번호
+        private bool movementAllowed = true; // 외부 패턴의 보스 이동 허용 상태
+        private BossPatternController patternController; // Day25 외부 패턴 실행기 참조
+        private BossSpriteAnimator spriteAnimator; // Ruin Ent Sprite 애니메이션 실행기 참조
         private static Sprite prototypeProjectileSprite; // 런타임 테스트 탄환 공용 Sprite
 
         public event Action<BossController> HealthChanged; // 보스 체력 변경 알림 이벤트
@@ -53,6 +57,8 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         public BossBattleState State => state; // 보스 현재 전투 상태 반환
         public RoomController OwnerRoom => ownerRoom; // 보스 소속 Room 반환
         public bool IsDefeated => state == BossBattleState.Defeated || state == BossBattleState.Cleared; // 보스 처치 상태 반환
+        public Transform Target => target; // 현재 플레이어 추적 대상 반환
+        public bool MovementAllowed => movementAllowed; // 현재 보스 이동 허용 상태 반환
 
         public void ConfigureForRuntime(string runtimeBossId, string runtimeDisplayName, float runtimeMaxHealth, RoomController room) // 런타임 테스트 보스 데이터 설정 메서드
         {
@@ -73,10 +79,13 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 
             CacheRuntimeReferences(); // 전투 시작 시 플레이어와 물리 참조 다시 확인
             state = BossBattleState.Fighting; // 보스 전투 진행 상태 적용
+            movementAllowed = true; // 전투 시작 시 기본 이동 허용
             attackTimer = Mathf.Max(0f, firstAttackDelay); // 첫 공격 타이머 초기화
             strafeTimer = Mathf.Max(0.1f, strafeChangeInterval); // 첫 선회 방향 타이머 초기화
             attackSequence = 0; // 공격 순서 초기화
             SetCollidersEnabled(true); // 보스 피격 Collider 활성화
+            EnsureSpriteAnimator(); // 전투 시작 시 Ruin Ent Sprite 애니메이터 준비
+            spriteAnimator?.PlayIdle(); // 보스 전투 시작 대기 애니메이션 적용
             HealthChanged?.Invoke(this); // HUD 최초 체력 갱신 알림
         }
 
@@ -98,6 +107,8 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             }
 
             currentHealth = Mathf.Max(0f, currentHealth - damageInfo.Amount); // 보스 현재 체력 감소
+            EnsureSpriteAnimator(); // 피격 시 Ruin Ent Sprite 애니메이터 준비
+            spriteAnimator?.PlayHit(); // 보스 피격 애니메이션 실행
             HealthChanged?.Invoke(this); // 보스 HUD 체력 변경 알림
             if (currentHealth <= 0f) // 보스 체력 소진 여부 확인
             {
@@ -112,6 +123,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             defeatedEventSent = false; // 사망 이벤트 호출 상태 초기화
             currentHealth = Mathf.Max(1f, maxHealth); // 현재 체력을 최대 체력으로 복구
             state = BossBattleState.Waiting; // 전투 시작 전 대기 상태 적용
+            movementAllowed = false; // 대기 상태 이동 차단
             attackTimer = Mathf.Max(0f, firstAttackDelay); // 공격 타이머 초기화
             strafeTimer = Mathf.Max(0.1f, strafeChangeInterval); // 선회 타이머 초기화
             attackSequence = 0; // 공격 순서 초기화
@@ -124,6 +136,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         public void MarkCleared() // 보스방 클리어 완료 상태 적용 메서드
         {
             state = BossBattleState.Cleared; // 보스 클리어 상태 저장
+            movementAllowed = false; // 클리어 상태 이동 차단
             StopMovement(); // 클리어 상태 이동 정지
             ClearSpawnedProjectiles(); // 클리어 시 남은 보스 탄환 정리
             SetCollidersEnabled(false); // 클리어된 보스 Collider 비활성화
@@ -137,6 +150,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
                 renderer = gameObject.AddComponent<SpriteRenderer>(); // 임시 보스 SpriteRenderer 추가
             }
 
+            EnsureSpriteAnimator(renderer); // Ruin Ent Sprite 애니메이터 생성과 Resources 연결
             if (renderer.sprite == null) // 보스 Sprite 미지정 여부 확인
             {
                 renderer.sprite = CreatePrototypeSprite(); // 런타임 임시 보스 Sprite 생성
@@ -151,8 +165,9 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 
             hitCollider.isTrigger = true; // 투사체 Trigger 피격 방식 적용
             hitCollider.size = new Vector2(2.8f, 2.8f); // 테스트 보스 피격 범위 설정
-            transform.localScale = Vector3.one * 1.5f; // 테스트 보스 시각 크기 확대
+            transform.localScale = Vector3.one * Mathf.Max(0.1f, visualScale); // Ruin Ent 시각 크기 8배 확대 적용
             CacheRuntimeReferences(); // 이동용 Rigidbody와 플레이어 참조 준비
+            EnsureDay25Controllers(); // Phase와 Pattern 컴포넌트 자동 구성
             SetCollidersEnabled(state == BossBattleState.Fighting); // 현재 전투 상태 기준 Collider 활성화 동기화
         }
 
@@ -180,6 +195,12 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
                 return; // 플레이어가 없으면 공격 처리 중단
             }
 
+            CachePatternController(); // Day25 외부 패턴 실행기 참조 갱신
+            if (patternController != null) // 외부 패턴 시스템 활성 여부 확인
+            {
+                return; // Day24 내부 반복 공격 중단
+            }
+
             attackTimer -= Time.deltaTime; // 다음 공격 대기 시간 감소
             if (attackTimer > 0f) // 공격 대기 시간 잔여 여부 확인
             {
@@ -193,7 +214,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         private void FixedUpdate() // 보스 플레이어 추적 이동 메서드
         {
             CacheBody(); // Rigidbody2D 참조 준비
-            if (state != BossBattleState.Fighting || target == null) // 이동 가능 전투 상태와 플레이어 참조 확인
+            if (state != BossBattleState.Fighting || target == null || !movementAllowed) // 이동 가능 전투 상태와 플레이어 참조 확인
             {
                 StopMovement(); // 이동 불가 상태 속도 정리
                 return; // 이동 처리 중단
@@ -231,6 +252,97 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             Vector2 nextPosition = currentPosition + moveDirection * moveSpeed * Time.fixedDeltaTime; // 다음 보스 이동 위치 계산
             nextPosition = ClampToOwnerRoom(nextPosition); // 보스가 현재 Room 밖으로 나가지 않도록 위치 제한
             body.MovePosition(nextPosition); // Rigidbody2D 기반 보스 이동 적용
+        }
+
+        public void SetMovementAllowed(bool allowed) // 외부 패턴의 이동 허용 상태 설정 메서드
+        {
+            movementAllowed = allowed; // 현재 이동 허용 상태 저장
+            if (!movementAllowed) // 이동 차단 상태 여부 확인
+            {
+                StopMovement(); // 즉시 남은 이동 속도 제거
+            }
+        }
+
+        public EnemyProjectile SpawnPatternProjectile(Vector2 direction, float speedMultiplier, float damageMultiplier) // Day25 패턴용 단일 적 탄환 생성 메서드
+        {
+            GameObject projectileObject = new GameObject("BossPatternProjectile"); // 런타임 보스 패턴 탄환 오브젝트 생성
+            int projectileLayer = LayerMask.NameToLayer("EnemyProjectile"); // 프로젝트 적 탄환 레이어 번호 조회
+            if (projectileLayer >= 0) // 적 탄환 레이어 존재 여부 확인
+            {
+                projectileObject.layer = projectileLayer; // 생성 탄환에 적 탄환 레이어 적용
+            }
+
+            projectileObject.transform.position = transform.position; // 보스 현재 위치에 탄환 생성
+            Rigidbody2D projectileBody = projectileObject.AddComponent<Rigidbody2D>(); // 탄환 이동 Rigidbody2D 추가
+            projectileBody.gravityScale = 0f; // 탑다운 탄환 중력 제거
+            projectileBody.freezeRotation = true; // 탄환 회전 물리 반응 차단
+            CircleCollider2D projectileCollider = projectileObject.AddComponent<CircleCollider2D>(); // 탄환 충돌 CircleCollider2D 추가
+            projectileCollider.isTrigger = true; // 기존 ProjectileBase Trigger 충돌 방식 적용
+            projectileCollider.radius = 0.18f; // 테스트 탄환 피격 크기 설정
+            SpriteRenderer projectileRenderer = projectileObject.AddComponent<SpriteRenderer>(); // 테스트 탄환 SpriteRenderer 추가
+            projectileRenderer.sprite = GetPrototypeProjectileSprite(); // 공용 테스트 탄환 Sprite 연결
+            projectileRenderer.sortingOrder = 30; // 보스와 배경보다 앞쪽에 탄환 표시
+            EnemyProjectile projectile = projectileObject.AddComponent<EnemyProjectile>(); // 기존 적 탄환 공통 처리 컴포넌트 추가
+            float finalSpeed = projectileSpeed * Mathf.Max(0.1f, speedMultiplier); // 패턴별 최종 탄환 속도 계산
+            float finalDamage = projectileDamage * Mathf.Max(0f, damageMultiplier); // 패턴별 최종 탄환 피해 계산
+            projectile.ConfigureDefaults(finalSpeed, finalDamage, projectileLifeTime); // 패턴별 탄환 속도·피해·수명 설정
+            spawnedProjectiles.Add(projectile); // 보스 사망 시 정리할 탄환 목록 등록
+            projectile.Launch(direction, gameObject); // 지정 방향으로 보스 탄환 발사
+            return projectile; // 생성된 패턴 탄환 반환
+        }
+
+        public void PlayPatternAnimation(BossPatternType patternType) // 외부 패턴 실행 시 보스 Sprite 공격 애니메이션 요청 메서드
+        {
+            EnsureSpriteAnimator(); // Ruin Ent Sprite 애니메이터 준비
+            spriteAnimator?.PlayAttack(patternType); // 현재 패턴 종류에 맞는 공격 애니메이션 실행
+        }
+
+        public void ClearPatternProjectiles() // Phase 전환용 현재 보스 탄환 정리 메서드
+        {
+            ClearSpawnedProjectiles(); // 현재 보스 생성 탄환 전체 제거
+        }
+
+        private void EnsureSpriteAnimator(SpriteRenderer renderer = null) // Ruin Ent Sprite 애니메이터 구성 메서드
+        {
+            if (spriteAnimator == null) // 기존 SpriteAnimator 참조 여부 확인
+            {
+                spriteAnimator = GetComponent<BossSpriteAnimator>(); // 현재 보스 SpriteAnimator 검색
+            }
+
+            if (spriteAnimator == null) // SpriteAnimator 미구성 여부 확인
+            {
+                spriteAnimator = gameObject.AddComponent<BossSpriteAnimator>(); // 현재 보스에 SpriteAnimator 추가
+            }
+
+            SpriteRenderer resolvedRenderer = renderer != null ? renderer : GetComponent<SpriteRenderer>(); // 현재 보스 SpriteRenderer 결정
+            if (resolvedRenderer != null) // SpriteRenderer 존재 여부 확인
+            {
+                spriteAnimator.Configure(this, resolvedRenderer); // BossController와 Renderer를 SpriteAnimator에 연결
+            }
+        }
+
+        private void EnsureDay25Controllers() // Day25 Phase와 Pattern 컴포넌트 자동 구성 메서드
+        {
+            BossPhaseController phaseController = GetComponent<BossPhaseController>(); // 기존 PhaseController 검색
+            if (phaseController == null) // PhaseController 미구성 여부 확인
+            {
+                phaseController = gameObject.AddComponent<BossPhaseController>(); // 보스 오브젝트에 PhaseController 추가
+            }
+
+            _ = phaseController; // PhaseController 구성 완료 참조 유지
+            CachePatternController(); // 기존 PatternController 검색
+            if (patternController == null) // PatternController 미구성 여부 확인
+            {
+                patternController = gameObject.AddComponent<BossPatternController>(); // 보스 오브젝트에 PatternController 추가
+            }
+        }
+
+        private void CachePatternController() // Day25 PatternController 참조 준비 메서드
+        {
+            if (patternController == null) // 기존 PatternController 참조 여부 확인
+            {
+                patternController = GetComponent<BossPatternController>(); // 현재 보스 PatternController 검색
+            }
         }
 
         private void CacheRuntimeReferences() // 보스 전투 런타임 참조 준비 메서드
@@ -342,27 +454,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 
         private void SpawnProjectile(Vector2 direction) // 단일 보스 탄환 런타임 생성 메서드
         {
-            GameObject projectileObject = new GameObject("BossPrototypeProjectile"); // 런타임 보스 탄환 오브젝트 생성
-            int projectileLayer = LayerMask.NameToLayer("EnemyProjectile"); // 프로젝트 적 탄환 레이어 번호 조회
-            if (projectileLayer >= 0) // 적 탄환 레이어 존재 여부 확인
-            {
-                projectileObject.layer = projectileLayer; // 생성 탄환에 적 탄환 레이어 적용
-            }
-
-            projectileObject.transform.position = transform.position; // 보스 현재 위치에 탄환 생성
-            Rigidbody2D projectileBody = projectileObject.AddComponent<Rigidbody2D>(); // 탄환 이동 Rigidbody2D 추가
-            projectileBody.gravityScale = 0f; // 탑다운 탄환 중력 제거
-            projectileBody.freezeRotation = true; // 탄환 회전 물리 반응 차단
-            CircleCollider2D projectileCollider = projectileObject.AddComponent<CircleCollider2D>(); // 탄환 충돌 CircleCollider2D 추가
-            projectileCollider.isTrigger = true; // 기존 ProjectileBase Trigger 충돌 방식 적용
-            projectileCollider.radius = 0.18f; // 테스트 탄환 피격 크기 설정
-            SpriteRenderer projectileRenderer = projectileObject.AddComponent<SpriteRenderer>(); // 테스트 탄환 SpriteRenderer 추가
-            projectileRenderer.sprite = GetPrototypeProjectileSprite(); // 공용 테스트 탄환 Sprite 연결
-            projectileRenderer.sortingOrder = 30; // 보스와 배경보다 앞쪽에 탄환 표시
-            EnemyProjectile projectile = projectileObject.AddComponent<EnemyProjectile>(); // 기존 적 탄환 공통 처리 컴포넌트 추가
-            projectile.ConfigureDefaults(projectileSpeed, projectileDamage, projectileLifeTime); // 보스용 탄환 속도·피해·수명 설정
-            spawnedProjectiles.Add(projectile); // 보스 사망 시 정리할 탄환 목록 등록
-            projectile.Launch(direction, gameObject); // 지정 방향으로 보스 탄환 발사
+            SpawnPatternProjectile(direction, 1f, 1f); // Day24 기본 탄환을 공통 패턴 생성기로 위임
         }
 
         private static Vector2 RotateDirection(Vector2 direction, float angleDegrees) // 2D 방향 회전 메서드
@@ -397,6 +489,9 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             defeatedEventSent = true; // 사망 이벤트 호출 완료 상태 기록
             currentHealth = 0f; // 보스 현재 체력 0 고정
             state = BossBattleState.Defeated; // 보스 처치 상태 적용
+            EnsureSpriteAnimator(); // 사망 시 Ruin Ent Sprite 애니메이터 준비
+            spriteAnimator?.PlayDeath(); // 보스 사망 애니메이션 실행
+            movementAllowed = false; // 보스 사망 상태 이동 차단
             StopMovement(); // 보스 사망 즉시 이동 정지
             ClearSpawnedProjectiles(); // 보스 사망 즉시 남은 자체 탄환 정리
             SetCollidersEnabled(false); // 처치 직후 추가 피격 차단

@@ -2,7 +2,7 @@ using UnityEngine; // Unity IMGUI와 화면 크기 기능 사용
 
 namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 {
-    public sealed class BossHealthHUD : MonoBehaviour // Day24 보스 이름·체력 기본 HUD 표시 클래스
+    public sealed class BossHealthHUD : MonoBehaviour // Day25 보스 이름·체력·Phase 기본 HUD 표시 클래스
     {
         [SerializeField] private BossBattleDirector director; // 현재 보스 전투 Director 참조
         [SerializeField] private float width = 520f; // 보스 HUD 가로 크기
@@ -49,7 +49,9 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             GUI.color = new Color(0.76f, 0.20f, 0.20f, 1f); // 보스 체력 채움 색상 적용
             GUI.DrawTexture(fillRect, Texture2D.whiteTexture); // 현재 보스 체력 비율 표시
             GUI.color = previousColor; // 기존 GUI 색상 복구
-            string healthText = $"{boss.DisplayName}   {Mathf.CeilToInt(boss.CurrentHealth)} / {Mathf.CeilToInt(boss.MaxHealth)}"; // 보스 이름·현재 체력 문구 생성
+            BossPhaseController phaseController = boss.GetComponent<BossPhaseController>(); // 현재 보스 PhaseController 검색
+            string phaseText = phaseController != null ? $"   Phase {phaseController.PhaseNumber}" : string.Empty; // 현재 Phase HUD 문구 생성
+            string healthText = $"{boss.DisplayName}{phaseText}   {Mathf.CeilToInt(boss.CurrentHealth)} / {Mathf.CeilToInt(boss.MaxHealth)}"; // 보스 이름·Phase·현재 체력 문구 생성
             GUI.Label(new Rect(left + 8f, topMargin + 2f, clampedWidth - 16f, 22f), healthText, labelStyle); // 보스 이름·체력 텍스트 표시
         }
 
