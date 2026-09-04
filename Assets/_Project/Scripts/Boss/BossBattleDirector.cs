@@ -1,4 +1,5 @@
 using System; // 보스 전투 이벤트 기능 사용
+using System.Collections; // 사망 연출 지연 Coroutine 기능 사용
 using ProjectQ.Combat; // 투사체 풀과 진영 기능 사용
 using ProjectQ.Rooms; // Room 진입·문 잠금·클리어 기능 사용
 using UnityEngine; // Unity 런타임 오브젝트 기능 사용
@@ -14,9 +15,11 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         [SerializeField] private string prototypeBossName = "Ruin Ent Prototype"; // Day24 테스트 보스 HUD 이름
         [SerializeField] private float prototypeBossHealth = 1200f; // Day24 테스트 보스 최대 체력
         [SerializeField] private Vector2 bossSpawnOffset = Vector2.zero; // 보스 Room 중심 기준 생성 위치 보정
+        [SerializeField] private float deathCleanupDelay = 0.75f; // 사망 Sprite 표시 후 Room Clear까지 대기 시간
         private RoomController activeBossRoom; // 현재 전투 중이거나 재시도 가능한 보스 Room
         private BossController currentBoss; // 현재 생성된 보스 인스턴스
         private BossBattleState state = BossBattleState.Waiting; // 현재 보스 전투 전체 상태
+        private Coroutine bossClearRoutine; // 현재 보스 사망 후 클리어 지연 Coroutine 참조
 
         public event Action<RoomController, BossController> BossBattleStarted; // 보스 전투 시작 알림 이벤트
         public event Action<RoomController, BossController> BossBattleCleared; // 보스 전투 클리어 알림 이벤트
@@ -63,6 +66,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         {
             UnsubscribeRoomEvents(); // RoomManager 이벤트 구독 해제
             UnsubscribeBossEvents(); // 현재 보스 이벤트 구독 해제
+            CancelBossClearRoutine(); // 씬 종료 시 사망 클리어 지연 Coroutine 정리
         }
 
         public bool RestartCurrentBossBattle() // Game Over Retry용 현재 보스전 재시작 메서드
@@ -72,6 +76,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
                 return false; // 보스 재시작 실패 반환
             }
 
+            CancelBossClearRoutine(); // 기존 사망 연출 지연 상태 정리
             DestroyCurrentBossImmediate(); // 이전 보스 인스턴스 정리
             activeBossRoom.SetCleared(false); // 재시도 Room 미클리어 상태 적용
             BeginBossBattle(activeBossRoom); // 같은 보스 Room 전투 다시 시작
@@ -201,22 +206,49 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             currentBoss.Defeated -= HandleBossDefeated; // 보스 사망 처리 이벤트 해제
         }
 
-        private void HandleBossDefeated(BossController defeatedBoss) // 보스 체력 0 도달 후 Room 클리어 처리 메서드
+        private void HandleBossDefeated(BossController defeatedBoss) // 보스 체력 0 도달 후 사망 연출과 Room 클리어 처리 메서드
         {
             if (defeatedBoss == null || defeatedBoss != currentBoss || activeBossRoom == null) // 현재 보스 전투와 일치 여부 확인
             {
                 return; // 잘못된 보스 사망 이벤트 무시
             }
 
-            state = BossBattleState.Defeated; // 보스 처치 직후 상태 적용
-            ClearEnemyProjectiles(); // 기획 규칙에 맞춰 보스 사망 시 적 탄환 즉시 제거
+            state = BossBattleState.Defeated; // 사망 애니메이션 진행 상태 적용
+            ClearEnemyProjectiles(); // 보스 사망 즉시 남은 적 탄환 제거
+            CancelBossClearRoutine(); // 기존 클리어 지연 Coroutine 중복 실행 방지
+            bossClearRoutine = StartCoroutine(CompleteBossClearAfterDeath(defeatedBoss)); // 사망 Pose 표시 후 Room Clear 예약
+        }
+
+        private IEnumerator CompleteBossClearAfterDeath(BossController defeatedBoss) // 사망 Sprite 표시 완료 후 Room 클리어 Coroutine
+        {
+            float delay = Mathf.Max(0.1f, deathCleanupDelay); // 사망 연출 최소 대기 시간 보정
+            yield return new WaitForSeconds(delay); // Death Sprite가 화면에 유지되도록 대기
+            if (defeatedBoss == null || defeatedBoss != currentBoss || activeBossRoom == null) // 대기 중 전투 상태 변경 여부 확인
+            {
+                bossClearRoutine = null; // 무효화된 Coroutine 참조 초기화
+                yield break; // 잘못된 전투 클리어 처리 중단
+            }
+
             activeBossRoom.SetCleared(true); // 현재 Boss Room 회차 클리어 상태 저장
-            activeBossRoom.UnlockConnectedDoors(); // 보스 사망 후 연결 Door 개방
+            activeBossRoom.UnlockConnectedDoors(); // 사망 연출 종료 후 연결 Door 개방
             defeatedBoss.MarkCleared(); // 보스 자체 상태를 클리어로 동기화
             state = BossBattleState.Cleared; // Director 보스 전투 클리어 완료 상태 적용
             BossBattleCleared?.Invoke(activeBossRoom, defeatedBoss); // 향후 보상·포탈 시스템 연결용 클리어 이벤트 전달
             UnsubscribeBossEvents(); // 클리어된 보스 이벤트 연결 정리
-            Destroy(defeatedBoss.gameObject, 0.15f); // 클리어 확인 후 임시 보스 오브젝트 제거
+            currentBoss = null; // Director의 현재 보스 참조 초기화
+            Destroy(defeatedBoss.gameObject, 0.05f); // 클리어 이벤트 전달 후 보스 오브젝트 제거
+            bossClearRoutine = null; // 완료된 사망 클리어 Coroutine 참조 초기화
+        }
+
+        private void CancelBossClearRoutine() // 현재 사망 후 클리어 지연 Coroutine 취소 메서드
+        {
+            if (bossClearRoutine == null) // 실행 중인 클리어 Coroutine 존재 여부 확인
+            {
+                return; // 취소 처리 생략
+            }
+
+            StopCoroutine(bossClearRoutine); // 실행 중 사망 클리어 지연 중단
+            bossClearRoutine = null; // Coroutine 참조 초기화
         }
 
         private void ClearEnemyProjectiles() // 보스 시작·종료 시 적 탄환 정리 메서드
@@ -231,6 +263,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 
         private void DestroyCurrentBossImmediate() // 이전 보스 인스턴스 안전 정리 메서드
         {
+            CancelBossClearRoutine(); // 이전 보스 사망 클리어 지연 상태 정리
             UnsubscribeBossEvents(); // 이전 보스 사망 이벤트 연결 해제
             if (currentBoss == null) // 이전 보스 존재 여부 확인
             {

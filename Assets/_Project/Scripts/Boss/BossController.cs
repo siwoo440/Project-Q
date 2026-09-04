@@ -31,7 +31,10 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         [SerializeField] private float aimedSpreadAngle = 18f; // 조준 확산 공격 전체 각도
         [SerializeField] private int radialBulletCount = 12; // 방사형 공격 탄환 수
         [SerializeField] private int radialAttackEvery = 4; // 방사형 공격 사용 주기
-        [SerializeField] private float visualScale = 12f; // Ruin Ent 시각 크기 배율
+        [SerializeField] private float visualScale = 4.5f; // 64x64 Ruin Ent 시각 크기 3배 확대 배율
+        [SerializeField] private Vector2 hitboxSize = new Vector2(2.2f, 2.4f); // 확대 Sprite 기준 보스 몸통 피격 범위
+        [SerializeField] private Vector2 hitboxOffset = new Vector2(0f, -0.15f); // 보스 몸통 중심 기준 피격 범위 위치 보정
+        [SerializeField] private Vector2 projectileOriginOffset = new Vector2(0f, -0.12f); // 가슴 코어 기준 탄환 발사 위치 보정
         private readonly List<EnemyProjectile> spawnedProjectiles = new List<EnemyProjectile>(); // 현재 보스가 생성한 탄환 추적 목록
         private Rigidbody2D body; // 보스 이동 Rigidbody2D 참조
         private Transform target; // 현재 플레이어 추적 대상
@@ -43,6 +46,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         private bool movementAllowed = true; // 외부 패턴의 보스 이동 허용 상태
         private BossPatternController patternController; // Day25 외부 패턴 실행기 참조
         private BossSpriteAnimator spriteAnimator; // Ruin Ent Sprite 애니메이션 실행기 참조
+        private Transform projectileOrigin; // 보스 탄환 공통 FirePoint Transform 참조
         private static Sprite prototypeProjectileSprite; // 런타임 테스트 탄환 공용 Sprite
 
         public event Action<BossController> HealthChanged; // 보스 체력 변경 알림 이벤트
@@ -59,6 +63,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         public bool IsDefeated => state == BossBattleState.Defeated || state == BossBattleState.Cleared; // 보스 처치 상태 반환
         public Transform Target => target; // 현재 플레이어 추적 대상 반환
         public bool MovementAllowed => movementAllowed; // 현재 보스 이동 허용 상태 반환
+        public Transform ProjectileOrigin => projectileOrigin != null ? projectileOrigin : transform; // 현재 보스 탄환 발사 기준 Transform 반환
 
         public void ConfigureForRuntime(string runtimeBossId, string runtimeDisplayName, float runtimeMaxHealth, RoomController room) // 런타임 테스트 보스 데이터 설정 메서드
         {
@@ -130,6 +135,9 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             StopMovement(); // 대기 상태 이동 정지
             ClearSpawnedProjectiles(); // 이전 전투 탄환 정리
             SetCollidersEnabled(false); // 실제 전투 시작 전 피격 차단
+            EnsureProjectileOrigin(); // 재시도용 보스 FirePoint 상태 준비
+            EnsureSpriteAnimator(); // 재시도용 보스 Sprite 애니메이터 준비
+            spriteAnimator?.ResetForRetry(); // Phase·피격·사망 시각 상태 초기화
             HealthChanged?.Invoke(this); // 초기 체력 상태 알림
         }
 
@@ -164,8 +172,10 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             }
 
             hitCollider.isTrigger = true; // 투사체 Trigger 피격 방식 적용
-            hitCollider.size = new Vector2(2.8f, 2.8f); // 테스트 보스 피격 범위 설정
-            transform.localScale = Vector3.one * Mathf.Max(0.1f, visualScale); // Ruin Ent 시각 크기 8배 확대 적용
+            hitCollider.size = hitboxSize; // 64x64 보스 몸통에 맞는 피격 범위 적용
+            hitCollider.offset = hitboxOffset; // 보스 몸통 중심에 Collider 위치 보정
+            transform.localScale = Vector3.one * Mathf.Max(0.1f, visualScale); // 64x64 Sprite 기준 보스 크기 적용
+            EnsureProjectileOrigin(); // 가슴 코어 기준 FirePoint 자동 생성
             CacheRuntimeReferences(); // 이동용 Rigidbody와 플레이어 참조 준비
             EnsureDay25Controllers(); // Phase와 Pattern 컴포넌트 자동 구성
             SetCollidersEnabled(state == BossBattleState.Fighting); // 현재 전투 상태 기준 Collider 활성화 동기화
@@ -272,7 +282,8 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
                 projectileObject.layer = projectileLayer; // 생성 탄환에 적 탄환 레이어 적용
             }
 
-            projectileObject.transform.position = transform.position; // 보스 현재 위치에 탄환 생성
+            EnsureProjectileOrigin(); // 탄환 생성 전 FirePoint 준비
+            projectileObject.transform.position = ProjectileOrigin.position; // 가슴 코어 FirePoint 위치에 탄환 생성
             Rigidbody2D projectileBody = projectileObject.AddComponent<Rigidbody2D>(); // 탄환 이동 Rigidbody2D 추가
             projectileBody.gravityScale = 0f; // 탑다운 탄환 중력 제거
             projectileBody.freezeRotation = true; // 탄환 회전 물리 반응 차단
@@ -291,15 +302,49 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             return projectile; // 생성된 패턴 탄환 반환
         }
 
+        public void PlayPatternTelegraph(BossPatternType patternType, float duration) // 실제 탄환 발사 전 공격 예고 Sprite 표시 메서드
+        {
+            EnsureSpriteAnimator(); // Ruin Ent Sprite 애니메이터 준비
+            spriteAnimator?.PlayTelegraph(patternType, duration); // 패턴 종류와 예고 시간 기준 Telegraph 실행
+        }
+
         public void PlayPatternAnimation(BossPatternType patternType) // 외부 패턴 실행 시 보스 Sprite 공격 애니메이션 요청 메서드
         {
             EnsureSpriteAnimator(); // Ruin Ent Sprite 애니메이터 준비
             spriteAnimator?.PlayAttack(patternType); // 현재 패턴 종류에 맞는 공격 애니메이션 실행
         }
 
+        public void PlayPhaseTransition(BossPhase nextPhase) // Phase 전환 시 보스 시각 피드백 실행 메서드
+        {
+            EnsureSpriteAnimator(); // Ruin Ent Sprite 애니메이터 준비
+            spriteAnimator?.PlayPhaseTransition(nextPhase); // 현재 새 Phase 기준 전환 Flash 실행
+        }
+
         public void ClearPatternProjectiles() // Phase 전환용 현재 보스 탄환 정리 메서드
         {
             ClearSpawnedProjectiles(); // 현재 보스 생성 탄환 전체 제거
+        }
+
+        private void EnsureProjectileOrigin() // 보스 가슴 코어 기준 FirePoint 자동 구성 메서드
+        {
+            if (projectileOrigin != null) // 기존 FirePoint 참조 여부 확인
+            {
+                projectileOrigin.localPosition = projectileOriginOffset; // 현재 설정값 기준 FirePoint 위치 동기화
+                return; // 중복 FirePoint 생성 방지
+            }
+
+            Transform existingOrigin = transform.Find("ProjectileOrigin"); // 기존 자식 FirePoint 검색
+            if (existingOrigin != null) // 기존 FirePoint 존재 여부 확인
+            {
+                projectileOrigin = existingOrigin; // 기존 FirePoint 참조 저장
+                projectileOrigin.localPosition = projectileOriginOffset; // 현재 설정값 기준 위치 보정
+                return; // FirePoint 준비 완료
+            }
+
+            GameObject originObject = new GameObject("ProjectileOrigin"); // 런타임 FirePoint 자식 오브젝트 생성
+            originObject.transform.SetParent(transform, false); // 보스 로컬 좌표 기준 자식 연결
+            originObject.transform.localPosition = projectileOriginOffset; // 가슴 코어 기준 로컬 위치 적용
+            projectileOrigin = originObject.transform; // 생성된 FirePoint 참조 저장
         }
 
         private void EnsureSpriteAnimator(SpriteRenderer renderer = null) // Ruin Ent Sprite 애니메이터 구성 메서드

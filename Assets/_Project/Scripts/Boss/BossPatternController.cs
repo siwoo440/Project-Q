@@ -4,7 +4,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 {
     [RequireComponent(typeof(BossController))] // 공통 BossController 필수 지정
     [RequireComponent(typeof(BossPhaseController))] // PhaseController 필수 지정
-    public sealed class BossPatternController : MonoBehaviour // Phase별 공격 패턴 선택과 실행 관리 클래스
+    public sealed class BossPatternController : MonoBehaviour // Day26 Telegraph 포함 Phase별 공격 패턴 관리 클래스
     {
         [SerializeField] private BossPatternType[] phase1Patterns = new[] { BossPatternType.AimedSpread, BossPatternType.AimedSpread, BossPatternType.RadialBurst }; // Phase1 패턴 순환 목록
         [SerializeField] private BossPatternType[] phase2Patterns = new[] { BossPatternType.AimedSpread, BossPatternType.RadialBurst, BossPatternType.RotatingRadial }; // Phase2 패턴 순환 목록
@@ -14,16 +14,22 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         [SerializeField] private float phase3AttackInterval = 0.80f; // Phase3 공격 간격
         [SerializeField] private float firstAttackDelay = 0.70f; // 전투 시작 첫 패턴 대기 시간
         [SerializeField] private float phaseTransitionDelay = 0.65f; // Phase 변경 후 공격 재개 대기 시간
-        [SerializeField] private float radialMovementPause = 0.30f; // 방사형 공격 이동 정지 시간
-        [SerializeField] private float rotatingMovementPause = 0.45f; // 회전 방사 공격 이동 정지 시간
+        [SerializeField] private float aimedTelegraphDuration = 0.22f; // 조준 확산 패턴 예고 시간
+        [SerializeField] private float radialTelegraphDuration = 0.32f; // 방사형 패턴 예고 시간
+        [SerializeField] private float rotatingTelegraphDuration = 0.38f; // 회전 방사 패턴 예고 시간
+        [SerializeField] private float radialMovementPause = 0.30f; // 방사형 공격 발사 후 추가 이동 정지 시간
+        [SerializeField] private float rotatingMovementPause = 0.45f; // 회전 방사 공격 발사 후 추가 이동 정지 시간
         private BossController boss; // 현재 보스 공통 컨트롤러 참조
         private BossPhaseController phaseController; // 현재 보스 PhaseController 참조
         private BossPhase activePhase = BossPhase.Phase1; // 현재 패턴 실행 기준 Phase
-        private float attackTimer; // 다음 패턴 실행까지 남은 시간
+        private BossPatternType pendingPattern = BossPatternType.AimedSpread; // Telegraph 완료 후 발사할 패턴
+        private float attackTimer; // 다음 패턴 예고 시작까지 남은 시간
         private float transitionTimer; // Phase 전환 대기 남은 시간
         private float movementPauseTimer; // 패턴 이동 정지 남은 시간
+        private float telegraphTimer; // 현재 패턴 예고 남은 시간
         private float rotatingAngle; // 회전 방사형 누적 시작 각도
         private int patternIndex; // 현재 Phase 패턴 순환 인덱스
+        private bool hasPendingPattern; // 현재 Telegraph 대기 패턴 존재 여부
 
         private void Awake() // 패턴 실행기 초기 참조 준비 메서드
         {
@@ -40,10 +46,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
         private void Start() // 현재 Phase 기준 패턴 상태 초기화 메서드
         {
             CacheReferences(); // 시작 시 필수 참조 확인
-            activePhase = phaseController != null ? phaseController.CurrentPhase : BossPhase.Phase1; // 현재 Phase 실행 기준 저장
-            patternIndex = 0; // 첫 패턴 인덱스 초기화
-            rotatingAngle = 0f; // 회전 방사 시작 각도 초기화
-            attackTimer = Mathf.Max(0f, firstAttackDelay); // 첫 공격 대기 시간 설정
+            ResetPatternState(); // 최초 Phase 패턴 실행 상태 초기화
         }
 
         private void OnDisable() // Phase와 사망 이벤트 해제 메서드
@@ -51,7 +54,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             UnsubscribeEvents(); // 연결된 보스 이벤트 정리
         }
 
-        private void Update() // 현재 Phase 패턴 실행 갱신 메서드
+        private void Update() // 현재 Phase 공격·Telegraph 상태 갱신 메서드
         {
             if (boss == null || phaseController == null) // 필수 보스 참조 존재 여부 확인
             {
@@ -64,34 +67,39 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
                 return; // 전투 외 패턴 처리 생략
             }
 
-            UpdateMovementPause(); // 패턴 기반 이동 정지 시간 갱신
+            UpdateMovementPause(); // 패턴 기반 이동 정지 타이머 갱신
             if (transitionTimer > 0f) // Phase 전환 대기 상태 여부 확인
             {
-                boss.SetMovementAllowed(false); // Phase 전환 대기 중 이동 차단 상태 유지
+                boss.SetMovementAllowed(false); // Phase 전환 중 이동 차단 유지
                 transitionTimer -= Time.deltaTime; // Phase 전환 남은 시간 감소
-                if (transitionTimer <= 0f) // Phase 전환 대기 종료 여부 확인
+                if (transitionTimer <= 0f) // Phase 전환 종료 여부 확인
                 {
-                    transitionTimer = 0f; // 전환 대기 시간 0 고정
+                    transitionTimer = 0f; // Phase 전환 시간 0 고정
                     attackTimer = Mathf.Max(0.1f, GetAttackInterval()); // 새 Phase 첫 패턴 대기 시간 설정
                     ResumeMovementIfReady(); // 전환 종료 후 이동 재개 가능 여부 확인
                 }
 
-                return; // Phase 전환 중 패턴 발사 차단
+                return; // Phase 전환 중 패턴 처리 차단
             }
 
             if (boss.Target == null) // 현재 플레이어 추적 대상 존재 여부 확인
             {
-                return; // 목표 미확보 상태 패턴 발사 중단
+                return; // 목표 미확보 상태 패턴 처리 중단
             }
 
-            attackTimer -= Time.deltaTime; // 다음 패턴 대기 시간 감소
+            if (hasPendingPattern) // 현재 Telegraph 대기 패턴 존재 여부 확인
+            {
+                UpdateTelegraph(); // 공격 예고 시간을 갱신하고 완료 시 실제 발사
+                return; // Telegraph 중 새 패턴 선택 차단
+            }
+
+            attackTimer -= Time.deltaTime; // 다음 패턴 예고까지 남은 시간 감소
             if (attackTimer > 0f) // 패턴 대기 시간 잔여 여부 확인
             {
-                return; // 이번 프레임 패턴 발사 생략
+                return; // 이번 프레임 새 패턴 준비 생략
             }
 
-            FireNextPattern(); // 현재 Phase 다음 패턴 실행
-            attackTimer = Mathf.Max(0.2f, GetAttackInterval()); // 현재 Phase 공격 간격 재설정
+            BeginNextPatternTelegraph(); // 다음 패턴 선택 후 Telegraph 시작
         }
 
         private void CacheReferences() // 패턴 실행 필수 참조 준비 메서드
@@ -135,17 +143,32 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             }
         }
 
+        private void ResetPatternState() // 전투 시작과 Retry 공통 패턴 상태 초기화 메서드
+        {
+            activePhase = phaseController != null ? phaseController.CurrentPhase : BossPhase.Phase1; // 현재 Phase 실행 기준 저장
+            patternIndex = 0; // 첫 패턴 인덱스 초기화
+            rotatingAngle = 0f; // 회전 방사 시작 각도 초기화
+            transitionTimer = 0f; // Phase 전환 대기 초기화
+            movementPauseTimer = 0f; // 이동 정지 타이머 초기화
+            telegraphTimer = 0f; // Telegraph 타이머 초기화
+            hasPendingPattern = false; // 대기 패턴 상태 초기화
+            attackTimer = Mathf.Max(0f, firstAttackDelay); // 첫 패턴 대기 시간 설정
+        }
+
         private void HandlePhaseChanged(BossPhase previousPhase, BossPhase nextPhase) // 새 Phase 전투 상태 준비 메서드
         {
-            _ = previousPhase; // 이전 Phase 디버그 외 별도 처리 생략
+            _ = previousPhase; // 이전 Phase 별도 저장 생략
             activePhase = nextPhase; // 새 패턴 실행 기준 Phase 저장
             patternIndex = 0; // 새 Phase 첫 패턴부터 순환하도록 초기화
             rotatingAngle = 0f; // 새 Phase 회전 방사 시작 각도 초기화
+            telegraphTimer = 0f; // 기존 패턴 Telegraph 즉시 취소
+            hasPendingPattern = false; // 기존 대기 패턴 제거
             transitionTimer = Mathf.Max(0f, phaseTransitionDelay); // Phase 전환 대기 시간 설정
             movementPauseTimer = transitionTimer; // Phase 전환 동안 이동 정지 시간 설정
             attackTimer = transitionTimer; // Phase 전환 동안 공격 대기 시간 동기화
-            boss.ClearPatternProjectiles(); // 기존 Phase에서 남은 보스 탄환 제거
+            boss.ClearPatternProjectiles(); // 이전 Phase에서 남은 보스 탄환 제거
             boss.SetMovementAllowed(false); // Phase 전환 중 보스 이동 차단
+            boss.PlayPhaseTransition(nextPhase); // 새 Phase 진입 Sprite Flash 실행
         }
 
         private void HandleBossDefeated(BossController defeatedBoss) // 보스 사망 시 패턴 상태 정리 메서드
@@ -156,22 +179,50 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             }
 
             attackTimer = float.MaxValue; // 추가 패턴 실행 완전 차단
-            transitionTimer = 0f; // Phase 전환 대기 상태 해제
-            movementPauseTimer = 0f; // 패턴 이동 정지 타이머 초기화
+            transitionTimer = 0f; // Phase 전환 대기 해제
+            movementPauseTimer = 0f; // 이동 정지 타이머 초기화
+            telegraphTimer = 0f; // Telegraph 타이머 초기화
+            hasPendingPattern = false; // 대기 패턴 제거
             boss.SetMovementAllowed(false); // 사망 보스 이동 차단
         }
 
-        private void FireNextPattern() // 현재 Phase 패턴 목록의 다음 공격 실행 메서드
+        private void BeginNextPatternTelegraph() // 현재 Phase 다음 패턴 선택과 예고 시작 메서드
         {
             BossPatternType[] patterns = GetCurrentPatterns(); // 현재 Phase 패턴 순환 목록 가져오기
             if (patterns == null || patterns.Length == 0) // 유효 패턴 목록 존재 여부 확인
             {
-                return; // 패턴 발사 처리 중단
+                attackTimer = Mathf.Max(0.2f, GetAttackInterval()); // 빈 목록 상태 다음 검사 시간 설정
+                return; // Telegraph 시작 중단
             }
 
             patternIndex = Mathf.Clamp(patternIndex, 0, patterns.Length - 1); // 현재 패턴 인덱스 범위 보정
-            BossPatternType pattern = patterns[patternIndex]; // 이번에 사용할 패턴 가져오기
+            pendingPattern = patterns[patternIndex]; // 이번에 사용할 패턴 저장
             patternIndex = (patternIndex + 1) % patterns.Length; // 다음 패턴 인덱스로 순환
+            telegraphTimer = GetTelegraphDuration(pendingPattern); // 현재 패턴별 예고 시간 설정
+            hasPendingPattern = true; // Telegraph 대기 패턴 상태 적용
+            movementPauseTimer = Mathf.Max(movementPauseTimer, telegraphTimer); // Telegraph 동안 이동 정지 시간 보장
+            boss.SetMovementAllowed(false); // 공격 예고 중 보스 이동 차단
+            boss.PlayPatternTelegraph(pendingPattern, telegraphTimer); // 패턴 공격 Pose와 Tint 예고 실행
+        }
+
+        private void UpdateTelegraph() // 현재 공격 예고 시간 갱신과 실제 발사 메서드
+        {
+            boss.SetMovementAllowed(false); // Telegraph 중 이동 차단 유지
+            telegraphTimer -= Time.deltaTime; // 현재 패턴 예고 남은 시간 감소
+            if (telegraphTimer > 0f) // 예고 시간 잔여 여부 확인
+            {
+                return; // 실제 발사 대기
+            }
+
+            telegraphTimer = 0f; // Telegraph 시간 0 고정
+            hasPendingPattern = false; // Telegraph 완료 상태 적용
+            FirePreparedPattern(pendingPattern); // 준비된 패턴 실제 발사
+            attackTimer = Mathf.Max(0.2f, GetAttackInterval()); // 다음 패턴 예고까지 공격 간격 설정
+            ResumeMovementIfReady(); // 후속 이동 정지가 없으면 보스 이동 재개
+        }
+
+        private void FirePreparedPattern(BossPatternType pattern) // Telegraph 완료 패턴 실제 실행 메서드
+        {
             switch (pattern) // 현재 패턴 종류 분기
             {
                 case BossPatternType.AimedSpread: // 조준 확산 패턴 선택
@@ -188,7 +239,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 
         private void FireAimedSpread() // 현재 Phase별 플레이어 조준 확산탄 실행 메서드
         {
-            boss.PlayPatternAnimation(BossPatternType.AimedSpread); // 조준 확산 공격 Sprite 애니메이션 실행
+            boss.PlayPatternAnimation(BossPatternType.AimedSpread); // 조준 공격 Sprite Pose 실행
             Transform target = boss.Target; // 현재 플레이어 목표 Transform 가져오기
             if (target == null) // 플레이어 목표 존재 여부 확인
             {
@@ -199,7 +250,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             float spreadAngle = activePhase == BossPhase.Phase1 ? 18f : activePhase == BossPhase.Phase2 ? 34f : 48f; // Phase별 전체 확산 각도 결정
             float speedMultiplier = activePhase == BossPhase.Phase3 ? 1.15f : activePhase == BossPhase.Phase2 ? 1.08f : 1f; // Phase별 탄환 속도 배율 결정
             float damageMultiplier = activePhase == BossPhase.Phase3 ? 1.15f : activePhase == BossPhase.Phase2 ? 1.05f : 1f; // Phase별 탄환 피해 배율 결정
-            Vector2 baseDirection = ((Vector2)target.position - (Vector2)transform.position).normalized; // 플레이어 기본 조준 방향 계산
+            Vector2 baseDirection = ((Vector2)target.position - (Vector2)boss.ProjectileOrigin.position).normalized; // FirePoint에서 플레이어까지 기본 조준 방향 계산
             float startAngle = bulletCount > 1 ? -spreadAngle * 0.5f : 0f; // 확산 공격 시작 각도 계산
             float angleStep = bulletCount > 1 ? spreadAngle / (bulletCount - 1) : 0f; // 탄환별 확산 각도 간격 계산
             for (int index = 0; index < bulletCount; index++) // Phase별 조준 탄환 수만큼 반복
@@ -212,23 +263,23 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
 
         private void FireRadialBurst() // 현재 Phase별 보스 중심 방사형 탄막 실행 메서드
         {
-            boss.PlayPatternAnimation(BossPatternType.RadialBurst); // 방사형 공격 Sprite 애니메이션 실행
+            boss.PlayPatternAnimation(BossPatternType.RadialBurst); // 방사 공격 Sprite Pose 실행
             int bulletCount = activePhase == BossPhase.Phase1 ? 12 : activePhase == BossPhase.Phase2 ? 16 : 20; // Phase별 방사형 탄환 수 결정
             float speedMultiplier = activePhase == BossPhase.Phase3 ? 1.12f : activePhase == BossPhase.Phase2 ? 1.05f : 1f; // Phase별 방사형 속도 배율 결정
             float damageMultiplier = activePhase == BossPhase.Phase3 ? 1.12f : 1f; // Phase별 방사형 피해 배율 결정
             FireRadialRing(bulletCount, 0f, speedMultiplier, damageMultiplier); // 기본 시작 각도 방사형 한 바퀴 실행
-            PauseMovement(radialMovementPause); // 방사형 발사 직후 보스 잠시 정지
+            PauseMovement(radialMovementPause); // 발사 후 보스 추가 이동 정지
         }
 
         private void FireRotatingRadial() // 누적 시작 각도를 사용하는 회전 방사형 패턴 실행 메서드
         {
-            boss.PlayPatternAnimation(BossPatternType.RotatingRadial); // 회전 방사 공격 Sprite 애니메이션 실행
+            boss.PlayPatternAnimation(BossPatternType.RotatingRadial); // 회전 공격 Sprite Pose 실행
             int bulletCount = activePhase == BossPhase.Phase3 ? 20 : 16; // 강화 Phase 기준 회전 방사 탄환 수 결정
             float speedMultiplier = activePhase == BossPhase.Phase3 ? 1.18f : 1.08f; // Phase별 회전 방사 속도 배율 결정
             float damageMultiplier = activePhase == BossPhase.Phase3 ? 1.15f : 1.05f; // Phase별 회전 방사 피해 배율 결정
             FireRadialRing(bulletCount, rotatingAngle, speedMultiplier, damageMultiplier); // 현재 누적 각도 기준 방사형 한 바퀴 실행
             rotatingAngle = Mathf.Repeat(rotatingAngle + 13f, 360f); // 다음 회전 방사 시작 각도 누적
-            PauseMovement(rotatingMovementPause); // 회전 방사 발사 직후 보스 잠시 정지
+            PauseMovement(rotatingMovementPause); // 발사 후 보스 추가 이동 정지
         }
 
         private void FireRadialRing(int bulletCount, float startAngle, float speedMultiplier, float damageMultiplier) // 지정 조건 방사형 한 바퀴 생성 메서드
@@ -273,7 +324,22 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
             return phase1AttackInterval; // 기본 Phase1 공격 간격 반환
         }
 
-        private void PauseMovement(float duration) // 패턴 발사 중 보스 이동 일시 정지 메서드
+        private float GetTelegraphDuration(BossPatternType pattern) // 현재 패턴별 공격 예고 시간 반환 메서드
+        {
+            if (pattern == BossPatternType.RadialBurst) // 방사형 패턴 여부 확인
+            {
+                return Mathf.Max(0.08f, radialTelegraphDuration); // 방사형 Telegraph 시간 반환
+            }
+
+            if (pattern == BossPatternType.RotatingRadial) // 회전 방사형 패턴 여부 확인
+            {
+                return Mathf.Max(0.08f, rotatingTelegraphDuration); // 회전 방사 Telegraph 시간 반환
+            }
+
+            return Mathf.Max(0.08f, aimedTelegraphDuration); // 기본 조준 Telegraph 시간 반환
+        }
+
+        private void PauseMovement(float duration) // 패턴 발사 후 보스 이동 일시 정지 메서드
         {
             movementPauseTimer = Mathf.Max(movementPauseTimer, Mathf.Max(0f, duration)); // 기존 정지보다 긴 이동 정지 시간 적용
             if (movementPauseTimer > 0f) // 실제 이동 정지 시간이 존재하는지 확인
@@ -304,7 +370,7 @@ namespace ProjectQ.Bosses // 보스 시스템 네임스페이스
                 return; // 이동 재개 처리 중단
             }
 
-            if (transitionTimer > 0f || movementPauseTimer > 0f) // Phase 또는 패턴 정지 상태 잔여 여부 확인
+            if (transitionTimer > 0f || movementPauseTimer > 0f || hasPendingPattern || telegraphTimer > 0f) // Phase·발사·Telegraph 정지 상태 여부 확인
             {
                 return; // 아직 이동 재개하지 않음
             }
