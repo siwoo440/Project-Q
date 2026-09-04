@@ -6,7 +6,7 @@ namespace ProjectQ.Progression // Stage 진행 시스템 네임스페이스
 {
     [RequireComponent(typeof(SpriteRenderer))] // 포탈 SpriteRenderer 필수 지정
     [RequireComponent(typeof(CircleCollider2D))] // 포탈 Trigger Collider 필수 지정
-    public sealed class StageExitPortal : MonoBehaviour // Boss Room Stage 이동 포탈 상호작용 클래스
+    public sealed class StageExitPortal : MonoBehaviour // Stage 이동과 Chapter Clear 포탈 상호작용 클래스
     {
         [SerializeField] private float visualScale = 1.5f; // 포탈 기본 시각 크기 배율
         [SerializeField] private float pulseAmplitude = 0.06f; // 포탈 호흡 애니메이션 크기 변화량
@@ -54,7 +54,7 @@ namespace ProjectQ.Progression // Stage 진행 시스템 네임스페이스
                 return; // 이번 프레임 포탈 사용 처리 생략
             }
 
-            if (progressController.TryAdvanceStage()) // 다음 Stage 생성과 이동 성공 여부 확인
+            if (progressController.TryAdvanceStage()) // 다음 Stage 또는 Chapter Clear 시작 성공 여부 확인
             {
                 interactionEnabled = false; // 성공한 포탈 중복 입력 즉시 차단
             }
@@ -96,7 +96,7 @@ namespace ProjectQ.Progression // Stage 진행 시스템 네임스페이스
             }
 
             BuildPromptStyle(); // 현재 GUI 호출 범위에서 안내 스타일 준비
-            string prompt = progressController.CanAdvanceStage ? $"E : 다음 스테이지  {progressController.CurrentStage + 1}" : "챕터 클리어 준비 완료"; // 현재 Stage 상태 기준 안내 문자열 생성
+            string prompt = progressController.CanCompleteChapter ? "E : 챕터 클리어" : $"E : 다음 스테이지  {progressController.CurrentStage + 1}"; // 현재 Stage 상태 기준 안내 문자열 생성
             Rect promptRect = new Rect((Screen.width - 420f) * 0.5f, Screen.height - 150f, 420f, 42f); // 화면 하단 중앙 포탈 안내 영역 계산
             GUI.Label(promptRect, prompt, promptStyle); // 포탈 상호작용 안내 출력
         }

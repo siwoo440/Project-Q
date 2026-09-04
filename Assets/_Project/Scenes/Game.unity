@@ -2369,6 +2369,9 @@ GameObject:
   - component: {fileID: 520812103}
   - component: {fileID: 520812102}
   - component: {fileID: 520812104}
+  - component: {fileID: 520812107}
+  - component: {fileID: 520812106}
+  - component: {fileID: 520812105}
   m_Layer: 0
   m_Name: DungeonSystem
   m_TagString: Untagged
@@ -2592,6 +2595,8 @@ MonoBehaviour:
   roomManager: {fileID: 520812095}
   bossDirector: {fileID: 520812103}
   rewardController: {fileID: 147592841}
+  chapterClearController: {fileID: 520812106}
+  saveController: {fileID: 520812105}
   currentChapter: 1
   currentStage: 1
   stagesPerChapter: 3
@@ -2599,6 +2604,62 @@ MonoBehaviour:
   portalScale: 1.5
   portalResourcePath: Stage/Portal/stage_exit_portal
   showStageHud: 1
+--- !u!114 &520812105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c6cedf74d7402da590af5f3a00a623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Progression.RunSaveController
+  stageProgressController: {fileID: 520812104}
+  chapterClearController: {fileID: 520812106}
+  memoryProgressController: {fileID: 520812107}
+  playerStats: {fileID: 1087613229}
+  runDeck: {fileID: 866756720}
+  runResources: {fileID: 147592843}
+  relicInventory: {fileID: 243129299}
+  rewardGenerator: {fileID: 147592842}
+  loadOnStart: 1
+  saveFileName: projectq_run_save.json
+--- !u!114 &520812106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc485a0a5e47448ea8859414ae789f10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Progression.ChapterClearController
+  stageProgressController: {fileID: 520812104}
+  memoryProgressController: {fileID: 520812107}
+  saveController: {fileID: 520812105}
+  playerMovement: {fileID: 1087613225}
+  playerDodge: {fileID: 1087613223}
+  cardUseController: {fileID: 1087613230}
+  playerBody: {fileID: 1087613228}
+  chapterOneMemoryId: memory_forest_01
+--- !u!114 &520812107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65ccc1b5c3ef4f26a5737e44add2db17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Progression.MemoryProgressController
+  forestClearMemoryId: memory_forest_01
+  unlockedMemoryIds: []
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0
