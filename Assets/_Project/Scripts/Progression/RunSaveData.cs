@@ -36,6 +36,7 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         public int currentChapter = 1; // 저장된 현재 Chapter
         public int currentStage = 1; // 저장된 현재 Stage
         public string savedAtUtc; // 저장된 UTC 시각 문자열
+        public double totalPlayTimeSeconds; // 계정 누적 플레이 시간
 
         public string GetLocalTimeText() // 로컬 저장 시각 표시 문자열 반환 메서드
         {
@@ -44,7 +45,18 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
                 return "알 수 없음"; // 알 수 없는 저장 시각 반환
             }
 
-            return parsed.ToLocalTime().ToString("yyyy.MM.dd  HH:mm"); // 로컬 저장 시각 형식 반환
+            return parsed.ToLocalTime().ToString("yyyy.MM.dd  HH:mm:ss"); // 초 단위 로컬 저장 시각 형식 반환
+        }
+
+        public string GetPlayTimeText() // 누적 플레이 시간 표시 문자열 반환
+        {
+            double safeSeconds = double.IsNaN(totalPlayTimeSeconds) || double.IsInfinity(totalPlayTimeSeconds) || totalPlayTimeSeconds < 0d ? 0d : totalPlayTimeSeconds; // 안전한 누적 초 계산
+            safeSeconds = Math.Min(safeSeconds, long.MaxValue); // 정수 변환 범위 제한
+            long totalSeconds = (long)Math.Floor(safeSeconds); // 소수점 이하 플레이 시간 제거
+            long hours = totalSeconds / 3600L; // 누적 시간 단위 계산
+            long minutes = totalSeconds % 3600L / 60L; // 나머지 분 단위 계산
+            long seconds = totalSeconds % 60L; // 나머지 초 단위 계산
+            return $"{hours}시간 {minutes:00}분 {seconds:00}초"; // 한글 누적 플레이 시간 반환
         }
     }
 }

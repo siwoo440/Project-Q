@@ -8,17 +8,34 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
     public sealed class MetaSaveController : MonoBehaviour // 영구 진행 저장 조정 컨트롤러
     {
         public const string DefaultSaveFileName = "projectq_meta_save.json"; // 공용 Meta 저장 파일 이름
+        private const float PlayTimeSaveIntervalSeconds = 60f; // 플레이 시간 자동 저장 간격
         [SerializeField] private MemoryProgressController memoryProgressController; // 영구 Memory 진행 참조
         [SerializeField] private string saveFileName = DefaultSaveFileName; // 현재 Meta 저장 파일 이름
         private MetaSaveData data; // 현재 영구 진행 데이터
         private MetaSaveFileStore fileStore; // Meta JSON 파일 저장소
         private bool initialized; // Meta 초기화 완료 상태
         private bool memoryEventBound; // Memory 이벤트 연결 상태
+        private float unsavedPlayTimeSeconds; // 아직 파일에 쓰지 않은 플레이 시간
 
         public string SavePath => Path.Combine(Application.persistentDataPath, saveFileName); // 플랫폼별 Meta 저장 경로
+        public static string DefaultSavePath => Path.Combine(Application.persistentDataPath, DefaultSaveFileName); // 메뉴 공용 Meta 저장 경로
         public int MemoryFragments => data == null ? 0 : data.memoryFragments; // 현재 Memory 조각 반환
         public int CoreFragments => data == null ? 0 : data.coreFragments; // 현재 Core 조각 반환
+        public double TotalPlayTimeSeconds => (data == null ? 0d : data.totalPlayTimeSeconds) + unsavedPlayTimeSeconds; // 현재 계정 누적 플레이 시간 반환
         public IReadOnlyList<string> UnlockedMemoryIds => data == null ? new string[0] : data.unlockedMemoryIds; // 영구 Memory 목록 반환
+
+        public static bool TryReadTotalPlayTime(out double totalPlayTimeSeconds) // 메뉴용 누적 플레이 시간 읽기
+        {
+            MetaSaveFileStore summaryStore = new MetaSaveFileStore(DefaultSavePath); // 기본 Meta 요약 저장소 생성
+            if (!summaryStore.TryLoadExisting(out MetaSaveData summaryData)) // 기존 Meta 데이터 읽기 여부 확인
+            {
+                totalPlayTimeSeconds = 0d; // 빈 누적 플레이 시간 설정
+                return false; // 누적 플레이 시간 읽기 실패 반환
+            }
+
+            totalPlayTimeSeconds = summaryData.totalPlayTimeSeconds; // 저장된 누적 플레이 시간 반환
+            return true; // 누적 플레이 시간 읽기 성공 반환
+        }
 
         public void Configure(MemoryProgressController memoryProgress) // Meta 시스템 참조 설정
         {
@@ -51,9 +68,38 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             SubscribeMemoryEvent(); // Memory 해금 이벤트 연결
         }
 
+        private void Update() // 활성 게임 플레이 시간 누적
+        {
+            float elapsedSeconds = Time.deltaTime; // 일시정지 제외 프레임 경과 시간 읽기
+            if (elapsedSeconds <= 0f) // 유효 경과 시간 여부 확인
+            {
+                return; // 일시정지 또는 무효 프레임 제외
+            }
+
+            unsavedPlayTimeSeconds += elapsedSeconds; // 미저장 플레이 시간 누적
+            if (unsavedPlayTimeSeconds >= PlayTimeSaveIntervalSeconds) // 자동 저장 간격 도달 여부 확인
+            {
+                FlushPlayTime(); // 누적 플레이 시간 파일 저장
+            }
+        }
+
         private void OnDisable() // Meta 시스템 비활성화
         {
+            FlushPlayTime(); // 씬 종료 전 플레이 시간 저장
             UnsubscribeMemoryEvent(); // Memory 해금 이벤트 해제
+        }
+
+        private void OnApplicationPause(bool paused) // 애플리케이션 일시정지 상태 처리
+        {
+            if (paused) // 애플리케이션 일시정지 여부 확인
+            {
+                FlushPlayTime(); // 백그라운드 전환 전 플레이 시간 저장
+            }
+        }
+
+        private void OnApplicationQuit() // 애플리케이션 종료 처리
+        {
+            FlushPlayTime(); // 종료 전 플레이 시간 저장
         }
 
         public bool EnsureInitialized() // Meta 저장 데이터 초기화 보장
@@ -187,6 +233,23 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         private bool ApplyChange(bool changed) // 변경된 Meta 데이터 저장
         {
             return changed && SaveNow(); // 실제 변경 시에만 Meta 저장
+        }
+
+        private bool FlushPlayTime() // 미저장 플레이 시간 Meta 반영
+        {
+            if (!initialized || data == null || unsavedPlayTimeSeconds <= 0f) // 초기화와 누적 시간 존재 여부 확인
+            {
+                return false; // 저장할 플레이 시간 없음 반환
+            }
+
+            float elapsedSeconds = unsavedPlayTimeSeconds; // 현재 미저장 시간 복사
+            unsavedPlayTimeSeconds = 0f; // 중복 누적 방지 초기화
+            if (!data.AddPlayTime(elapsedSeconds)) // Meta 데이터 시간 추가 여부 확인
+            {
+                return false; // 플레이 시간 반영 실패 반환
+            }
+
+            return SaveNow(); // 누적 플레이 시간 즉시 저장 결과
         }
 
         private void HandleMemoryUnlocked(string memoryId) // 런타임 Memory 해금 이벤트 처리

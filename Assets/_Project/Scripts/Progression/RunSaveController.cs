@@ -64,6 +64,11 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
                     currentStage = Mathf.Max(1, data.currentStage), // 안전한 Stage 저장
                     savedAtUtc = data.savedAtUtc // 마지막 저장 시각 저장
                 };
+                if (MetaSaveController.TryReadTotalPlayTime(out double totalPlayTimeSeconds)) // Meta 누적 플레이 시간 읽기 여부 확인
+                {
+                    summary.totalPlayTimeSeconds = totalPlayTimeSeconds; // 메뉴 요약에 누적 플레이 시간 저장
+                }
+
                 return true; // 요약 읽기 성공 반환
             }
             catch (Exception exception) // 손상 JSON 또는 파일 읽기 오류 수집

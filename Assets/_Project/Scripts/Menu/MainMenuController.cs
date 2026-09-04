@@ -154,7 +154,8 @@ namespace ProjectQ.Menu // 메뉴 시스템 네임스페이스
 
             if (saveTimeText != null) // 저장 시각 텍스트 참조 확인
             {
-                saveTimeText.text = hasSave ? $"마지막 저장  {summary.GetLocalTimeText()}" : "마지막 저장  ----.--.--  --:--"; // 저장 시각 문구 적용
+                saveTimeText.verticalOverflow = VerticalWrapMode.Overflow; // 두 줄 저장 정보 잘림 방지
+                saveTimeText.text = hasSave ? $"마지막 저장  {summary.GetLocalTimeText()}\n누적 플레이  {summary.GetPlayTimeText()}" : "마지막 저장  ----.--.--  --:--:--\n누적 플레이  0시간 00분 00초"; // 저장 시각과 누적 시간 문구 적용
             }
 
             if (versionText != null) // 버전 텍스트 참조 확인

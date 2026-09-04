@@ -25,7 +25,25 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         public List<string> unlockedWorldLogIds = new List<string>(); // 해금 세계관 기록 ID 목록
         public List<string> normalEndingIds = new List<string>(); // 달성 일반 엔딩 ID 목록
         public int trueEndingProgress; // 진 엔딩 진행 단계
+        public double totalPlayTimeSeconds; // 계정 누적 플레이 시간
         public string savedAtUtc; // 저장 시점 UTC 문자열
+
+        public bool AddPlayTime(double seconds) // 계정 플레이 시간 누적
+        {
+            if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds <= 0d) // 추가 시간 유효성 확인
+            {
+                return false; // 잘못된 시간 추가 차단
+            }
+
+            if (double.IsNaN(totalPlayTimeSeconds) || double.IsInfinity(totalPlayTimeSeconds) || totalPlayTimeSeconds < 0d) // 기존 누적 시간 유효성 확인
+            {
+                totalPlayTimeSeconds = 0d; // 손상 누적 시간 초기화
+            }
+
+            double total = totalPlayTimeSeconds + seconds; // 신규 누적 시간 계산
+            totalPlayTimeSeconds = double.IsInfinity(total) ? double.MaxValue : total; // 유한 범위 누적 시간 저장
+            return true; // 플레이 시간 추가 성공
+        }
 
         public bool AddMemoryFragments(int amount) // Memory 조각 추가
         {
@@ -146,6 +164,7 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             memoryFragments = Math.Max(0, memoryFragments); // Memory 조각 음수 보정
             coreFragments = Math.Max(0, coreFragments); // Core 조각 음수 보정
             trueEndingProgress = Math.Max(0, trueEndingProgress); // 진 엔딩 진행 음수 보정
+            totalPlayTimeSeconds = double.IsNaN(totalPlayTimeSeconds) || double.IsInfinity(totalPlayTimeSeconds) || totalPlayTimeSeconds < 0d ? 0d : totalPlayTimeSeconds; // 누적 플레이 시간 보정
             discoveredCardIds = NormalizeIdList(discoveredCardIds); // 카드 도감 목록 정리
             discoveredRelicIds = NormalizeIdList(discoveredRelicIds); // 유물 도감 목록 정리
             unlockedMemoryIds = NormalizeIdList(unlockedMemoryIds); // Memory 목록 정리

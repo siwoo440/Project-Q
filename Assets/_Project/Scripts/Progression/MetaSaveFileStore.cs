@@ -47,6 +47,39 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             }
         }
 
+        public bool TryLoadExisting(out MetaSaveData data) // 기존 Meta 파일 읽기
+        {
+            data = null; // 기본 빈 읽기 결과 설정
+            if (!File.Exists(filePath)) // Meta 파일 존재 여부 확인
+            {
+                return false; // 기존 파일 없음 반환
+            }
+
+            try // 기존 Meta 읽기 예외 처리 시작
+            {
+                string json = File.ReadAllText(filePath); // 기존 Meta JSON 전체 읽기
+                data = JsonUtility.FromJson<MetaSaveData>(json); // JSON을 Meta 데이터로 변환
+                if (data == null) // 역직렬화 결과 존재 여부 확인
+                {
+                    return false; // 빈 Meta 데이터 차단
+                }
+
+                if (data.saveVersion != MetaSaveData.CurrentSaveVersion) // Meta 저장 버전 일치 여부 확인
+                {
+                    data = null; // 미지원 Meta 데이터 제거
+                    return false; // 미지원 버전 차단
+                }
+
+                data.Normalize(); // 읽은 Meta 데이터 정규화
+                return true; // 기존 Meta 읽기 성공 반환
+            }
+            catch (Exception) // JSON 또는 파일 읽기 오류 수집
+            {
+                data = null; // 오류 읽기 결과 초기화
+                return false; // 기존 Meta 읽기 실패 반환
+            }
+        }
+
         public bool LoadOrCreate(out MetaSaveData data) // Meta 파일 복구 또는 기본 생성
         {
             data = null; // 기본 빈 복구 결과 설정

@@ -71,6 +71,7 @@ namespace ProjectQ.Tests.Progression // 진행 저장 테스트 네임스페이�
             data.memoryFragments = -5; // 손상 Memory 조각 값 설정
             data.coreFragments = -2; // 손상 Core 조각 값 설정
             data.trueEndingProgress = -3; // 손상 진 엔딩 진행 값 설정
+            data.totalPlayTimeSeconds = double.NaN; // 손상 누적 플레이 시간 설정
             data.unlockedMemoryIds = new List<string> { "memory_01", "", "memory_01", "memory_02" }; // 손상 Memory 목록 설정
             data.characterProgress = new List<CharacterMetaSaveRecord> // 손상 캐릭터 진행 목록 생성
             {
@@ -93,11 +94,35 @@ namespace ProjectQ.Tests.Progression // 진행 저장 테스트 네임스페이�
             Assert.That(data.memoryFragments, Is.Zero); // Memory 조각 최소값 검증
             Assert.That(data.coreFragments, Is.Zero); // Core 조각 최소값 검증
             Assert.That(data.trueEndingProgress, Is.Zero); // 진 엔딩 진행 최소값 검증
+            Assert.That(data.totalPlayTimeSeconds, Is.Zero); // 누적 플레이 시간 보정 검증
             Assert.That(data.unlockedMemoryIds, Is.EqualTo(new[] { "memory_01", "memory_02" })); // Memory 중복 제거 검증
             Assert.That(data.characterProgress, Has.Count.EqualTo(1)); // 캐릭터 중복 병합 검증
             Assert.That(data.GetCharacterMastery("rina"), Is.EqualTo(7)); // 캐릭터 숙련도 안전 병합 검증
             Assert.That(data.HasResearch("rina", "research_a"), Is.True); // 첫 연구 유지 검증
             Assert.That(data.HasResearch("rina", "research_b"), Is.True); // 중복 레코드 연구 병합 검증
+        }
+
+        [Test] // 누적 플레이 시간 검증 표시
+        public void PlayTimeRejectsInvalidValuesAndAccumulates() // 유효 시간 누적과 잘못된 값 차단 검증
+        {
+            MetaSaveData data = new MetaSaveData(); // 기본 Meta 데이터 생성
+
+            Assert.That(data.AddPlayTime(12.5d), Is.True); // 첫 플레이 시간 추가 검증
+            Assert.That(data.AddPlayTime(7.5d), Is.True); // 추가 플레이 시간 누적 검증
+            Assert.That(data.AddPlayTime(0d), Is.False); // 0초 추가 차단 검증
+            Assert.That(data.AddPlayTime(-1d), Is.False); // 음수 시간 추가 차단 검증
+            Assert.That(data.AddPlayTime(double.NaN), Is.False); // 숫자 아님 시간 추가 차단 검증
+            Assert.That(data.AddPlayTime(double.PositiveInfinity), Is.False); // 무한대 시간 추가 차단 검증
+            Assert.That(data.totalPlayTimeSeconds, Is.EqualTo(20d)); // 최종 누적 시간 검증
+        }
+
+        [Test] // 플레이 시간 문구 검증 표시
+        public void RunSaveSummaryFormatsTotalPlayTime() // 누적 시간을 시간·분·초로 표시 검증
+        {
+            RunSaveSummary summary = new RunSaveSummary(); // 저장 요약 데이터 생성
+            summary.totalPlayTimeSeconds = 45296d; // 12시간 34분 56초 입력
+
+            Assert.That(summary.GetPlayTimeText(), Is.EqualTo("12시간 34분 56초")); // 누적 시간 한글 형식 검증
         }
 
         [Test] // 저장 왕복 검증 표시
@@ -111,11 +136,13 @@ namespace ProjectQ.Tests.Progression // 진행 저장 테스트 네임스페이�
                 MetaSaveData source = new MetaSaveData(); // 저장 원본 Meta 데이터 생성
                 source.AddMemoryFragments(12); // 저장 원본 Memory 조각 설정
                 source.UnlockMemory("memory_01"); // 저장 원본 Memory 해금 설정
+                source.AddPlayTime(65.25d); // 저장 원본 누적 플레이 시간 설정
 
                 Assert.That(store.Save(source), Is.True); // Meta 파일 저장 성공 검증
-                Assert.That(store.LoadOrCreate(out MetaSaveData loaded), Is.True); // Meta 파일 복구 성공 검증
+                Assert.That(store.TryLoadExisting(out MetaSaveData loaded), Is.True); // 기존 Meta 파일 읽기 성공 검증
                 Assert.That(loaded.memoryFragments, Is.EqualTo(12)); // 복구 Memory 조각 검증
                 Assert.That(loaded.unlockedMemoryIds, Is.EqualTo(new[] { "memory_01" })); // 복구 Memory 목록 검증
+                Assert.That(loaded.totalPlayTimeSeconds, Is.EqualTo(65.25d)); // 복구 누적 플레이 시간 검증
             }
             finally // 임시 파일 정리 시작
             {
