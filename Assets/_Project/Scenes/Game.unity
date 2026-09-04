@@ -2368,6 +2368,7 @@ GameObject:
   - component: {fileID: 520812101}
   - component: {fileID: 520812103}
   - component: {fileID: 520812102}
+  - component: {fileID: 520812104}
   m_Layer: 0
   m_Name: DungeonSystem
   m_TagString: Untagged
@@ -2574,6 +2575,30 @@ MonoBehaviour:
   prototypeBossName: Ruin Ent Prototype
   prototypeBossHealth: 1200
   bossSpawnOffset: {x: 0, y: 0}
+  deathCleanupDelay: 0.75
+--- !u!114 &520812104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520812093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 034a42c33f964b37801e5147c8ba1376, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectQ.Runtime::ProjectQ.Progression.StageProgressController
+  dungeonGenerator: {fileID: 520812094}
+  roomManager: {fileID: 520812095}
+  bossDirector: {fileID: 520812103}
+  rewardController: {fileID: 147592841}
+  currentChapter: 1
+  currentStage: 1
+  stagesPerChapter: 3
+  portalOffset: {x: 0, y: -1.8}
+  portalScale: 1.5
+  portalResourcePath: Stage/Portal/stage_exit_portal
+  showStageHud: 1
 --- !u!1 &579027193
 GameObject:
   m_ObjectHideFlags: 0
