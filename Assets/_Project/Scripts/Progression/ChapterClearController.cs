@@ -18,7 +18,6 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         [SerializeField] private Rigidbody2D playerBody; // Clear 화면 중 플레이어 물리 정지 참조
         [SerializeField] private string chapterOneMemoryId = "memory_forest_01"; // Chapter 1 숲 클리어 Memory File ID
         private bool chapterClearStarted; // Chapter Clear 중복 시작 차단 상태
-        private bool chapterClearCompleted; // Clear 화면 확인 완료 상태
         private bool clearScreenOpen; // 현재 Chapter Clear UI 표시 상태
         private int clearedChapter; // 마지막 클리어 Chapter 번호
         private int clearedStage; // 마지막 클리어 Stage 번호
@@ -97,7 +96,6 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             }
 
             chapterClearStarted = true; // Chapter Clear 시작 상태 적용
-            chapterClearCompleted = false; // Clear 화면 확인 완료 상태 초기화
             clearScreenOpen = true; // Chapter Clear 결과 화면 표시 활성화
             clearedChapter = chapter; // 클리어 Chapter 번호 저장
             clearedStage = stage; // 클리어 Stage 번호 저장
@@ -120,7 +118,6 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         public void RestoreChapterClearState(bool cleared, int chapter, int stage) // Save 데이터 기준 Chapter Clear 상태 복구 메서드
         {
             chapterClearStarted = cleared; // 저장 Chapter 완료 상태 적용
-            chapterClearCompleted = false; // Load 후 Clear 확인 상태 초기화
             clearScreenOpen = cleared; // 완료 Save는 Chapter Clear 화면 다시 표시
             clearedChapter = cleared ? Mathf.Max(1, chapter) : 0; // 저장 Chapter 번호 유효 범위 적용
             clearedStage = cleared ? Mathf.Max(1, stage) : 0; // 저장 Stage 번호 유효 범위 적용
@@ -135,7 +132,6 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             }
 
             clearScreenOpen = false; // Chapter Clear 결과 화면 숨김
-            chapterClearCompleted = true; // Chapter Clear 화면 확인 완료 상태 적용
             SetPlayerControlEnabled(true); // 현재 Prototype에서 Clear 이후 탐색 조작 복구
         }
 

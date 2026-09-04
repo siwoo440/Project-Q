@@ -15,13 +15,14 @@ using UnityEngine; // JsonUtility·persistentDataPath 기능 사용
 namespace ProjectQ.Progression // 진행 시스템 네임스페이스
 {
     [DefaultExecutionOrder(350)] // 기존 Run 구성 Start 이후 Save Load 적용 순서 지정
-    public sealed class RunSaveController : MonoBehaviour // Day28 JSON Run 진행 저장·복구 클래스
+    public sealed class RunSaveController : MonoBehaviour // 회차 전용 JSON 저장·복구 클래스
     {
         public const int CurrentSaveVersion = 1; // 현재 Save 데이터 구조 버전
         public const string DefaultSaveFileName = "projectq_run_save.json"; // 공용 Run Save 파일 이름
         [SerializeField] private StageProgressController stageProgressController; // Chapter·Stage 저장 복구 참조
         [SerializeField] private ChapterClearController chapterClearController; // Chapter Clear 저장 복구 참조
-        [SerializeField] private MemoryProgressController memoryProgressController; // Memory File 저장 복구 참조
+        [SerializeField] private MemoryProgressController memoryProgressController; // 영구 Memory 런타임 참조
+        [SerializeField] private MetaSaveController metaSaveController; // 영구 Meta 저장 참조
         [SerializeField] private PlayerStats playerStats; // HP·MP·Shield 저장 복구 참조
         [SerializeField] private RunDeck runDeck; // Deck와 강화 상태 저장 복구 참조
         [SerializeField] private RunResources runResources; // Gold 저장 복구 참조
@@ -88,6 +89,13 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
                 memory = host.AddComponent<MemoryProgressController>(); // 진행 Host에 MemoryProgressController 추가
             }
 
+            MetaSaveController meta = UnityEngine.Object.FindFirstObjectByType<MetaSaveController>(); // 기존 MetaSaveController 검색
+            if (meta == null) // MetaSaveController 미구성 여부 확인
+            {
+                meta = host.AddComponent<MetaSaveController>(); // 진행 Host에 MetaSaveController 추가
+            }
+
+            meta.Configure(memory); // 영구 Meta와 Memory 진행 연결
             ChapterClearController chapterClear = UnityEngine.Object.FindFirstObjectByType<ChapterClearController>(); // 기존 ChapterClearController 검색
             if (chapterClear == null) // ChapterClearController 미구성 여부 확인
             {
@@ -132,6 +140,11 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             if (memoryProgressController == null) // MemoryProgressController 참조 여부 확인
             {
                 memoryProgressController = FindFirstObjectByType<MemoryProgressController>(); // Memory 진행 컨트롤러 자동 검색
+            }
+
+            if (metaSaveController == null) // MetaSaveController 참조 여부 확인
+            {
+                metaSaveController = FindFirstObjectByType<MetaSaveController>(); // Meta 저장 컨트롤러 자동 검색
             }
 
             if (playerStats == null) // PlayerStats 참조 여부 확인
@@ -395,11 +408,6 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
                 }
             }
 
-            if (memoryProgressController != null) // MemoryProgressController 존재 여부 확인
-            {
-                data.unlockedMemoryIds.AddRange(memoryProgressController.CreateSnapshot()); // 현재 Memory File 해금 ID 전체 저장
-            }
-
             return data; // 완성된 Run Save 데이터 반환
         }
 
@@ -415,10 +423,7 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             int safeChapter = Mathf.Max(1, data.currentChapter); // Save Chapter 최소값 보정
             int maxStage = stageProgressController != null ? Mathf.Max(1, stageProgressController.StagesPerChapter) : 3; // 현재 Chapter 허용 Stage 수 계산
             int safeStage = Mathf.Clamp(data.currentStage, 1, maxStage); // Save Stage 범위 보정
-            if (memoryProgressController != null) // MemoryProgressController 존재 여부 확인
-            {
-                memoryProgressController.RestoreUnlockedIds(data.unlockedMemoryIds); // 저장 Memory File 해금 목록 복구
-            }
+            metaSaveController?.MergeLegacyMemoryIds(data.unlockedMemoryIds); // Day 29 Memory 목록 영구 Meta 저장으로 병합
 
             Dictionary<string, CardData> cardCatalog = BuildCardCatalog(); // 현재 Scene 참조에서 Card ID 원본 카탈로그 구성
             Dictionary<string, RelicData> relicCatalog = BuildRelicCatalog(); // 현재 Scene 참조에서 Relic ID 원본 카탈로그 구성

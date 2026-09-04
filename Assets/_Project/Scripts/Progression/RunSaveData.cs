@@ -12,7 +12,7 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
     }
 
     [Serializable] // Unity JsonUtility Run 저장 데이터 직렬화 허용
-    public sealed class RunSaveData // Day28 통합 Run 진행 저장 데이터 클래스
+    public sealed class RunSaveData // 회차 전용 진행 저장 데이터 클래스
     {
         public int saveVersion = 1; // 저장 데이터 구조 버전
         public int currentChapter = 1; // 저장 시점 현재 Chapter
@@ -24,7 +24,7 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
         public int gold; // 현재 회차 보유 Gold
         public List<CardSaveRecord> cards = new List<CardSaveRecord>(); // 현재 회차 Deck 카드와 강화 단계 목록
         public List<string> relicIds = new List<string>(); // 현재 회차 보유 Relic ID 목록
-        public List<string> unlockedMemoryIds = new List<string>(); // 현재 해금 Memory File ID 목록
+        public List<string> unlockedMemoryIds = new List<string>(); // Day 29 Memory 이전 호환 목록
         public string characterId = "rina"; // 현재 회차 캐릭터 고유 ID
         public RunDifficulty difficulty = RunDifficulty.Normal; // 현재 회차 난이도 값
         public string startingDeckId = "basic"; // 현재 회차 시작 덱 고유 ID

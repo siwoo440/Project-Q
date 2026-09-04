@@ -4,7 +4,7 @@ using UnityEngine; // Unity 직렬화 기능 사용
 
 namespace ProjectQ.Progression // 진행 시스템 네임스페이스
 {
-    public sealed class MemoryProgressController : MonoBehaviour // 회차 Memory File 해금 상태 관리 클래스
+    public sealed class MemoryProgressController : MonoBehaviour // 영구 Memory File 해금 상태 관리 클래스
     {
         [SerializeField] private string forestClearMemoryId = "memory_forest_01"; // Chapter 1 숲 클리어 Memory File 식별자
         [SerializeField] private List<string> unlockedMemoryIds = new List<string>(); // 현재 해금된 Memory File 식별자 목록
@@ -35,14 +35,9 @@ namespace ProjectQ.Progression // 진행 시스템 네임스페이스
             return !string.IsNullOrWhiteSpace(memoryId) && unlockedMemoryIds.Contains(memoryId); // 유효 ID와 해금 목록 포함 여부 반환
         }
 
-        public List<string> CreateSnapshot() // Save용 Memory ID 복사본 생성 메서드
+        public void RestoreUnlockedIds(IReadOnlyList<string> ids) // Meta 데이터 기준 Memory File 해금 상태 복구 메서드
         {
-            return new List<string>(unlockedMemoryIds); // 현재 해금 목록 독립 복사본 반환
-        }
-
-        public void RestoreUnlockedIds(IReadOnlyList<string> ids) // Save 데이터 기준 Memory File 해금 상태 복구 메서드
-        {
-            unlockedMemoryIds.Clear(); // 기존 Memory 해금 목록 초기화
+            unlockedMemoryIds.Clear(); // 기존 런타임 Memory 해금 목록 초기화
             if (ids == null) // 저장 Memory 목록 존재 여부 확인
             {
                 return; // 복구할 Memory ID가 없으면 종료
